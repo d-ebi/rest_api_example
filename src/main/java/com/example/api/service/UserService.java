@@ -1,8 +1,7 @@
 package com.example.api.service;
 
-import com.example.api.dto.CareerHistoryDto;
-import com.example.api.dto.UserRequest;
-import com.example.api.dto.UserResponse;
+import com.example.api.dto.*;
+import com.example.api.entity.CareerHistoryEntity;
 import com.example.api.entity.UserEntity;
 import com.example.api.exception.*;
 import com.example.api.repository.UserJpaRepository;
@@ -15,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +37,7 @@ public class UserService {
      * @throws UnprocessableEntityException 期間の整合性エラー
      */
     @Transactional
-    public Long create(UserRequest userRequest) {
+    public Long create(UserCreateRequest userRequest) {
         validatePeriod(userRequest);
         if (userRepository.existsByName(userRequest.getName())) {
             FieldErrorDetail err = ErrorCatalog.fieldError(
@@ -61,20 +62,41 @@ public class UserService {
      * @throws UnprocessableEntityException 期間の整合性エラー
      */
     @Transactional
-    public void update(Long userId, UserRequest userRequest) {
-        validatePeriod(userRequest);
+    public void update(Long userId, UserUpdateRequest userRequest) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new BadRequestException(ErrorCatalog.Messages.INVALID_USER_ID));
-        if (userRepository.existsByNameAndIdNot(userRequest.getName(), userId)) {
-            FieldErrorDetail err = ErrorCatalog.fieldError(
-                    ErrorCatalog.DetailCodes.DUPLICATE,
-                    ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
-                    "name",
-                    "body",
-                    Map.of("unique", true));
-            throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
+
+        if (userRequest.getName() != null) {
+            if (userRepository.existsByNameAndIdNot(userRequest.getName(), userId)) {
+                FieldErrorDetail err = ErrorCatalog.fieldError(
+                        ErrorCatalog.DetailCodes.DUPLICATE,
+                        ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
+                        "name",
+                        "body",
+                        Map.of("unique", true));
+                throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
+            }
+            userEntity.setName(userRequest.getName());
         }
-        userMapper.updateEntity(userEntity, userRequest);
+        if (userRequest.getAge() != null) {
+            userEntity.setAge(userRequest.getAge());
+        }
+        if (userRequest.getBirthday() != null) {
+            userEntity.setBirthday(userRequest.getBirthday().format(UserMapStructMapper.F));
+        }
+        if (userRequest.getHeight() != null) {
+            userEntity.setHeight(roundHeight(userRequest.getHeight()));
+        }
+        if (userRequest.getZipCode() != null) {
+            userEntity.setZipCode(userRequest.getZipCode());
+        }
+
+        if (userRequest.getCareerHistories() != null) {
+            updateCareerHistories(userEntity, userRequest.getCareerHistories());
+        }
+
+        validatePeriod(userEntity, userRequest);
+        userEntity.setUpdatedAt(now());
         userRepository.save(userEntity);
     }
 
@@ -135,7 +157,7 @@ public class UserService {
      * @param userRequest 対象リクエスト
      * @throws UnprocessableEntityException 期間の整合性エラー
      */
-    private void validatePeriod(UserRequest userRequest) {
+    private void validatePeriod(UserCreateRequest userRequest) {
         if (userRequest.getCareerHistories() != null) {
             for (CareerHistoryDto careerHistory : userRequest.getCareerHistories()) {
                 if (careerHistory.getPeriod() == null || careerHistory.getPeriod().getFrom() == null || careerHistory.getPeriod().getTo() == null) continue;
@@ -151,5 +173,104 @@ public class UserService {
                 }
             }
         }
+    }
+
+    private void validatePeriod(UserEntity userEntity, UserUpdateRequest userRequest) {
+        if (userRequest.getCareerHistories() == null) return;
+        Map<Long, CareerHistoryEntity> existing = userEntity.getCareerHistories() == null
+                ? Collections.emptyMap()
+                : userEntity.getCareerHistories().stream().filter(e -> e.getId() != null)
+                .collect(Collectors.toMap(CareerHistoryEntity::getId, e -> e));
+
+        for (CareerHistoryUpdateDto dto : userRequest.getCareerHistories()) {
+            PeriodUpdateDto period = dto.getPeriod();
+            if (period == null && dto.getId() == null) continue;
+
+            LocalDate currentFrom = null;
+            LocalDate currentTo = null;
+            if (dto.getId() != null && existing.containsKey(dto.getId())) {
+                CareerHistoryEntity entity = existing.get(dto.getId());
+                currentFrom = parseDate(entity.getPeriodFrom());
+                currentTo = parseDate(entity.getPeriodTo());
+            }
+            LocalDate newFrom = period != null && period.getFrom() != null ? period.getFrom() : currentFrom;
+            LocalDate newTo = period != null && period.getTo() != null ? period.getTo() : currentTo;
+
+            if (newFrom != null && newTo != null && newFrom.isAfter(newTo)) {
+                FieldErrorDetail err = ErrorCatalog.fieldError(
+                        ErrorCatalog.DetailCodes.INVALID_PERIOD,
+                        ErrorCatalog.Reasons.PERIOD_FROM_AFTER_TO,
+                        "careerHistories.period",
+                        "body",
+                        Map.of("from", newFrom.toString(), "to", newTo.toString()));
+                throw new UnprocessableEntityException(ErrorCatalog.Messages.INVALID_PERIOD, List.of(err));
+            }
+        }
+    }
+
+    private void updateCareerHistories(UserEntity userEntity, List<CareerHistoryUpdateDto> updates) {
+        List<CareerHistoryEntity> current = userEntity.getCareerHistories() == null
+                ? new ArrayList<>()
+                : new ArrayList<>(userEntity.getCareerHistories());
+
+        Map<Long, CareerHistoryEntity> existing = current.stream()
+                .filter(entity -> entity.getId() != null)
+                .collect(Collectors.toMap(CareerHistoryEntity::getId, entity -> entity));
+
+        for (CareerHistoryUpdateDto dto : updates) {
+            CareerHistoryEntity entity = null;
+            if (dto.getId() != null) {
+                entity = existing.get(dto.getId());
+            }
+            if (entity == null) {
+                entity = new CareerHistoryEntity();
+                entity.setUser(userEntity);
+                current.add(entity);
+            }
+
+            if (dto.getTitle() != null) {
+                entity.setTitle(dto.getTitle());
+            }
+
+            PeriodUpdateDto period = dto.getPeriod();
+            if (period != null) {
+                if (period.getFrom() != null) {
+                    entity.setPeriodFrom(period.getFrom().format(UserMapStructMapper.F));
+                }
+                if (period.getTo() != null) {
+                    entity.setPeriodTo(period.getTo().format(UserMapStructMapper.F));
+                }
+            }
+
+            entity.setUser(userEntity);
+
+            if (dto.getId() == null) {
+                if (entity.getTitle() == null || entity.getPeriodFrom() == null || entity.getPeriodTo() == null) {
+                    FieldErrorDetail err = ErrorCatalog.fieldError(
+                            ErrorCatalog.DetailCodes.VALIDATION_ERROR,
+                            ErrorCatalog.Messages.VALIDATION_FAILED,
+                            "careerHistories",
+                            "body",
+                            Map.of("message", "title and period are required for new entries"));
+                    throw new UnprocessableEntityException(ErrorCatalog.Messages.UNPROCESSABLE_TOP, List.of(err));
+                }
+            }
+        }
+
+        userEntity.setCareerHistories(current);
+    }
+
+    private Double roundHeight(BigDecimal height) {
+        if (height == null) return null;
+        return height.setScale(1, BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
+
+    private LocalDate parseDate(String value) {
+        if (value == null) return null;
+        return LocalDate.parse(value, UserMapStructMapper.F);
+    }
+
+    private String now() {
+        return userMapper.now();
     }
 }

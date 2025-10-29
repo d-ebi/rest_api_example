@@ -1,9 +1,10 @@
 package com.example.api.controller;
 
 import com.example.api.dto.PageMeta;
+import com.example.api.dto.UserCreateRequest;
 import com.example.api.dto.UserListResponse;
-import com.example.api.dto.UserRequest;
 import com.example.api.dto.UserResponse;
+import com.example.api.dto.UserUpdateRequest;
 import com.example.api.exception.ApiErrorResponse;
 import com.example.api.service.UserService;
 import com.example.api.openapi.OpenApiExamples;
@@ -148,9 +149,9 @@ public class UserController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = UserRequest.class),
+                    schema = @Schema(implementation = UserCreateRequest.class),
                     examples = @ExampleObject(value = OpenApiExamples.Requests.USER_CREATE)))
-    public ResponseEntity<Void> create(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<Void> create(@Valid @RequestBody UserCreateRequest userRequest) {
         Long createdUserId = userService.create(userRequest);
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("/api/v1/users/" + createdUserId));
@@ -186,9 +187,9 @@ public class UserController {
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = UserRequest.class),
+                    schema = @Schema(implementation = UserUpdateRequest.class),
                     examples = @ExampleObject(value = OpenApiExamples.Requests.USER_UPDATE)))
-    public ResponseEntity<Void> update(@PathVariable("user_id") Long userId, @Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<Void> update(@PathVariable("user_id") Long userId, @RequestBody UserUpdateRequest userRequest) {
         userService.update(userId, userRequest);
         return ResponseEntity.noContent().build();
     }

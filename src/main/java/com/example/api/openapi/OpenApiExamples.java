@@ -30,8 +30,10 @@ public final class OpenApiExamples {
 
         public static final String TITLE = "Software Engineer";
         public static final String TITLE_UPDATE = "Senior Engineer";
+        public static final String ID = "1";
         public static final String JSON = """
                 {
+                  "id": 1,
                   "title": "Software Engineer",
                   "period": {
                     "from": "2018/04/01",
@@ -107,6 +109,7 @@ public final class OpenApiExamples {
                   "zipCode": "123-4567",
                   "careerHistories": [
                     {
+                      "id": 2,
                       "title": "Senior Engineer",
                       "period": {
                         "from": "2021/04/01",
@@ -136,6 +139,7 @@ public final class OpenApiExamples {
                       "zipCode": "123-4567",
                       "careerHistories": [
                         {
+                          "id": 1,
                           "title": "Software Engineer",
                           "period": {
                             "from": "2018/04/01",
@@ -158,6 +162,7 @@ public final class OpenApiExamples {
                   "zipCode": "123-4567",
                   "careerHistories": [
                     {
+                      "id": 1,
                       "title": "Software Engineer",
                       "period": {
                         "from": "2018/04/01",
@@ -165,6 +170,7 @@ public final class OpenApiExamples {
                       }
                     },
                     {
+                      "id": 2,
                       "title": "Senior Engineer",
                       "period": {
                         "from": "2021/04/01",
