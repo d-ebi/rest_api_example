@@ -24,13 +24,18 @@ OpenAPI の YAML は、生成タスク実行時に `target/api-docs.yml` へ出�
 
 
 ```
-mvn verify -DskipTests -Dspring-boot.start.wait=1000
+mvn verify -Dspring-boot.start.wait=1000
 ```
 
 ## 起動
-
+### 通常起動
 ```
 mvn spring-boot:run
+```
+
+### 構造化ログ
+```
+mvn spring-boot:run -Dspring-boot.run.profiles=structured
 ```
 
 アプリ起動後、DB は `./data/app.db` を使用します。テーブル定義は `src/main/resources/schema.sql` に基づいて作成されます。

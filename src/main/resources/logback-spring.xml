@@ -1,0 +1,63 @@
+<configuration>
+    <!-- デフォルト: 従来のプレーンテキスト出力（構造化ログ OFF） -->
+    <springProfile name="!structured">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- 構造化ログ（JSON）。起動時に spring.profiles.active=structured を付与すると有効化 -->
+    <springProfile name="structured">
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <!-- タイムスタンプ -->
+                    <timestamp>
+                        <fieldName>timestamp</fieldName>
+                    </timestamp>
+
+                    <!-- レベル（文字列） -->
+                    <logLevel>
+                        <fieldName>logLevel</fieldName>
+                    </logLevel>
+
+                    <!-- レベル（数値） -->
+                    <logLevelValue>
+                        <fieldName>logLevelValue</fieldName>
+                    </logLevelValue>
+
+                    <!-- トレースID（MDC traceId をトップレベルに展開） -->
+                    <pattern>
+                        <pattern>
+                            {"traceId":"%X{traceId}"}
+                        </pattern>
+                    </pattern>
+
+                    <!-- メッセージ -->
+                    <message>
+                        <fieldName>message</fieldName>
+                    </message>
+
+                    <!-- ロガー名 / スレッド名 -->
+                    <loggerName>
+                        <fieldName>loggerName</fieldName>
+                    </loggerName>
+                    <threadName>
+                        <fieldName>threadName</fieldName>
+                    </threadName>
+                </providers>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+        </root>
+    </springProfile>
+</configuration>
+
