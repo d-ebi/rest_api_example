@@ -24,51 +24,51 @@ public class UserRequest {
     /**
      * 氏名（必須・1〜200文字・数字のみ不可）。
      */
-    @NotBlank
-    @Size(min = 1, max = 200)
-    @NotNumericOnly
+    @NotBlank(message = "{user.name.notBlank}")
+    @Size(min = 1, max = 200, message = "{user.name.size}")
+    @NotNumericOnly(message = "{user.name.notNumeric}")
     @Schema(description = "氏名（1〜200文字、数字のみ不可）", example = OpenApiExamples.Users.NAME, required = true, minLength = 1, maxLength = 200)
     private String name;
 
     /**
      * 年齢（必須・0〜150）。
      */
-    @NotNull
-    @Min(0)
-    @Max(150)
+    @NotNull(message = "{user.age.required}")
+    @Min(value = 0, message = "{user.age.min}")
+    @Max(value = 150, message = "{user.age.max}")
     @Schema(description = "年齢（0〜150）", example = OpenApiExamples.Users.AGE, required = true, minimum = "0", maximum = "150")
     private Integer age;
 
     /**
      * 生年月日（必須・yyyy/MM/dd・1900/01/01〜2099/12/31）。
      */
-    @NotNull
+    @NotNull(message = "{user.birthday.required}")
     @JsonFormat(pattern = "yyyy/MM/dd")
-    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "birthday out of range")
+    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "{user.birthday.range}")
     @Schema(description = "生年月日（yyyy/MM/dd）", example = OpenApiExamples.Users.BIRTHDAY, required = true, pattern = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$")
     private LocalDate birthday;
 
     /**
      * 身長（任意・整数部3桁・小数1桁・0.0〜300.0）。
      */
-    @Digits(integer = 3, fraction = 1)
-    @DecimalMin(value = "0.0")
-    @DecimalMax(value = "300.0")
+    @Digits(integer = 3, fraction = 1, message = "{user.height.digits}")
+    @DecimalMin(value = "0.0", message = "{user.height.min}")
+    @DecimalMax(value = "300.0", message = "{user.height.max}")
     @Schema(description = "身長（整数3桁・小数1桁、0.0〜300.0）", example = OpenApiExamples.Users.HEIGHT, minimum = "0.0", maximum = "300.0", type = "number", format = "double")
     private BigDecimal height; // optional
 
     /**
      * 郵便番号（任意・8文字・000-0000形式）。
      */
-    @Pattern(regexp = "\\d{3}-\\d{4}")
-    @Size(min = 8, max = 8)
+    @Pattern(regexp = "\\d{3}-\\d{4}", message = "{user.zip.pattern}")
+    @Size(min = 8, max = 8, message = "{user.zip.size}")
     @Schema(description = "郵便番号（000-0000形式）", example = OpenApiExamples.Users.ZIP_CODE, minLength = 8, maxLength = 8, pattern = "^\\d{3}-\\d{4}$")
     private String zipCode; // optional
 
     /**
      * 職歴（任意・1〜50件）。空配列は不可。
      */
-    @Size(min = 1, max = 50)
+    @Size(min = 1, max = 50, message = "{user.career.count}")
     @Valid
     @io.swagger.v3.oas.annotations.media.ArraySchema(
             arraySchema = @Schema(description = "職歴（最大50件）"),

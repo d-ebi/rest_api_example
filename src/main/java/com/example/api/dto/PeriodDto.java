@@ -17,16 +17,16 @@ import java.time.LocalDate;
 @Data
 public class PeriodDto {
     /** 期間の開始日（必須・yyyy/MM/dd）。 */
-    @NotNull(message = "period.from is required")
+    @NotNull(message = "{period.from.required}")
     @JsonFormat(pattern = "yyyy/MM/dd")
-    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "period.from out of range")
+    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "{period.from.range}")
     @Schema(description = "開始日（yyyy/MM/dd）", example = OpenApiExamples.Period.FROM, required = true)
     private LocalDate from;
 
     /** 期間の終了日（必須・yyyy/MM/dd）。 */
-    @NotNull(message = "period.to is required")
+    @NotNull(message = "{period.to.required}")
     @JsonFormat(pattern = "yyyy/MM/dd")
-    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "period.to out of range")
+    @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "{period.to.range}")
     @Schema(description = "終了日（yyyy/MM/dd）", example = OpenApiExamples.Period.TO, required = true)
     private LocalDate to;
 }

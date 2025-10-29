@@ -176,7 +176,7 @@ public final class OpenApiExamples {
         public static final String MESSAGE = ErrorCatalog.Messages.VALIDATION_FAILED;
         public static final String TRACE_ID = "f1c2d3e4-5678-90ab-cdef-1234567890ab";
         public static final String DETAIL_CODE = ErrorCatalog.DetailCodes.VALIDATION_ERROR;
-        public static final String DETAIL_REASON = "must not be blank";
+        public static final String DETAIL_REASON = "氏名は必須です";
         public static final String DETAIL_FIELD = "name";
         public static final String DETAIL_CONSTRAINTS = "{\"min\":1,\"max\":200}";
     }

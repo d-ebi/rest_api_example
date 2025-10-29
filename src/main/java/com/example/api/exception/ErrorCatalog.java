@@ -1,5 +1,6 @@
 package com.example.api.exception;
 
+import com.example.api.validation.MessageAccessor;
 import org.springframework.http.HttpStatus;
 
 import java.util.Collections;
@@ -63,17 +64,17 @@ public final class ErrorCatalog {
         private Messages() {
         }
 
-        public static final String VALIDATION_FAILED = "Validation failed";
-        public static final String DUPLICATE_RESOURCE = "Duplicate resource";
-        public static final String INVALID_PERIOD = "Invalid period";
-        public static final String USER_NOT_FOUND = "User not found";
-        public static final String INVALID_USER_ID = "Invalid user_id";
-        public static final String MALFORMED_JSON = "Malformed JSON or invalid format";
-        public static final String METHOD_NOT_ALLOWED = "Method not allowed";
-        public static final String NOT_ACCEPTABLE = "Not acceptable";
-        public static final String TYPE_MISMATCH = "Type mismatch";
-        public static final String NOT_FOUND = "Resource not found";
-        public static final String UNEXPECTED_ERROR = "Unexpected error";
+        public static final String VALIDATION_FAILED = "入力内容に誤りがあります";
+        public static final String DUPLICATE_RESOURCE = "リソースが重複しています";
+        public static final String INVALID_PERIOD = "期間指定が不正です";
+        public static final String USER_NOT_FOUND = "ユーザーが見つかりません";
+        public static final String INVALID_USER_ID = "指定したuser_idが不正です";
+        public static final String MALFORMED_JSON = "JSONの構文が不正です";
+        public static final String METHOD_NOT_ALLOWED = "許可されていないHTTPメソッドです";
+        public static final String NOT_ACCEPTABLE = "受理できないメディアタイプです";
+        public static final String TYPE_MISMATCH = "パラメータの型が不正です";
+        public static final String NOT_FOUND = "リソースが見つかりません";
+        public static final String UNEXPECTED_ERROR = "予期しないエラーが発生しました";
     }
 
     /**
@@ -83,8 +84,8 @@ public final class ErrorCatalog {
         private Reasons() {
         }
 
-        public static final String NAME_ALREADY_EXISTS = "name already exists";
-        public static final String PERIOD_FROM_AFTER_TO = "period.from must be on/before period.to";
+        public static final String NAME_ALREADY_EXISTS = MessageAccessor.get("error.name.duplicate");
+        public static final String PERIOD_FROM_AFTER_TO = MessageAccessor.get("error.period.invalid.order");
     }
 
     /**

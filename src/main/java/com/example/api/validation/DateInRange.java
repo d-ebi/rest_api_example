@@ -12,10 +12,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = DateInRangeValidator.class)
 @Documented
 public @interface DateInRange {
-    String message() default "date out of allowed range";
+    String message() default "{validation.date.range}";
     String min(); // inclusive, format yyyy/MM/dd
     String max(); // inclusive, format yyyy/MM/dd
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
-

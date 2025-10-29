@@ -18,14 +18,14 @@ import javax.validation.constraints.Size;
 @Data
 public class CareerHistoryDto {
     /** 職務タイトル（必須・1〜200文字）。 */
-    @NotBlank
-    @Size(min = 1, max = 200)
-    @NotNumericOnly
+    @NotBlank(message = "{career.title.notBlank}")
+    @Size(min = 1, max = 200, message = "{career.title.size}")
+    @NotNumericOnly(message = "{career.title.notNumeric}")
     @Schema(description = "職務タイトル（1〜200文字）", example = OpenApiExamples.Career.TITLE, required = true, minLength = 1, maxLength = 200)
     private String title;
 
     /** 従事期間（必須）。 */
-    @NotNull
+    @NotNull(message = "{career.period.required}")
     @Valid
     @Schema(description = "期間", required = true)
     private PeriodDto period;

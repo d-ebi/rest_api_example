@@ -81,14 +81,14 @@ public class UserController {
             @Parameter(description = "名前の部分一致フィルタ", example = OpenApiExamples.Users.SEARCH_NAME,
                     schema = @Schema(minLength = 1, maxLength = 200, pattern = ".*\\D.*"))
             @RequestParam(name = "name", required = false)
-            @Size(min = 1, max = 200)
-            @javax.validation.constraints.Pattern(regexp = ".*\\D.*", message = "must contain at least one non-digit") String name,
+            @Size(min = 1, max = 200, message = "{user.list.name.size}")
+            @javax.validation.constraints.Pattern(regexp = ".*\\D.*", message = "{user.list.name.pattern}") String name,
             @Parameter(description = "取得件数", example = OpenApiExamples.Page.LIMIT,
                     schema = @Schema(minimum = "0", maximum = "100"))
-            @RequestParam(name = "limit", defaultValue = "10") @Min(0) @Max(100) int limit,
+            @RequestParam(name = "limit", defaultValue = "10") @Min(value = 0, message = "{user.list.limit.min}") @Max(value = 100, message = "{user.list.limit.max}") int limit,
             @Parameter(description = "開始オフセット", example = OpenApiExamples.Page.OFFSET,
                     schema = @Schema(minimum = "0"))
-            @RequestParam(name = "offset", defaultValue = "0") @Min(0) int offset
+            @RequestParam(name = "offset", defaultValue = "0") @Min(value = 0, message = "{user.list.offset.min}") int offset
     ) {
         int totalCount = userService.count(name);
         List<UserResponse> userResponses = userService.list(name, limit, offset);
