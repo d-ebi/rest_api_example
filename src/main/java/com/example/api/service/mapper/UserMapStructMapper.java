@@ -75,6 +75,7 @@ public interface UserMapStructMapper {
     /**
      * エンティティからレスポンスDTOへ変換します。
      */
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "age", source = "age")
     @Mapping(target = "birthday", expression = "java(java.time.LocalDate.parse(userEntity.getBirthday(), F))")

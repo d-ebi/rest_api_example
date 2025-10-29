@@ -21,6 +21,7 @@ public final class OpenApiExamples {
         public static final String HEIGHT_UPDATE = "171.0";
         public static final String ZIP_CODE = "123-4567";
         public static final String SEARCH_NAME = "Tar";
+        public static final String ID = "1";
     }
 
     public static final class Career {
@@ -44,7 +45,12 @@ public final class OpenApiExamples {
         private Period() {
         }
 
-        public static final String RANGE_JSON = "{\"from\":\"2018/04/01\",\"to\":\"2021/03/31\"}";
+        public static final String RANGE_JSON = """
+                {
+                  "from": "2018/04/01",
+                  "to": "2021/03/31"
+                }
+                """;
         public static final String FROM = "2018/04/01";
         public static final String TO = "2021/03/31";
         public static final String FROM_UPDATE = "2021/04/01";
@@ -59,7 +65,14 @@ public final class OpenApiExamples {
         public static final String LIMIT = "10";
         public static final String TOTAL = "25";
         public static final String HAS_NEXT = "true";
-        public static final String META_JSON = "{\"offset\":0,\"limit\":10,\"total\":25,\"hasNext\":true}";
+        public static final String META_JSON = """
+                {
+                  "offset": 0,
+                  "limit": 10,
+                  "total": 25,
+                  "hasNext": true
+                }
+                """;
     }
 
     public static final class Requests {
@@ -115,6 +128,7 @@ public final class OpenApiExamples {
                   "page": {"offset":0,"limit":10,"total":25,"hasNext":true},
                   "users": [
                     {
+                      "id": 1,
                       "name": "Taro Yamada",
                       "age": 30,
                       "birthday": "1994/04/01",
@@ -136,6 +150,7 @@ public final class OpenApiExamples {
 
         public static final String USER_DETAIL = """
                 {
+                  "id": 1,
                   "name": "Taro Yamada",
                   "age": 30,
                   "birthday": "1994/04/01",
@@ -273,6 +288,12 @@ public final class OpenApiExamples {
         public static final String DETAIL_CODE = ErrorCatalog.DetailCodes.VALIDATION_ERROR;
         public static final String DETAIL_REASON = "氏名は必須です";
         public static final String DETAIL_FIELD = "name";
-        public static final String DETAIL_CONSTRAINTS = "{\"min\":1,\"max\":200}";
+        public static final String DETAIL_LOCATION = "body";
+        public static final String DETAIL_CONSTRAINTS = """
+                {
+                  "min": 1,
+                  "max": 200
+                }
+                """;
     }
 }

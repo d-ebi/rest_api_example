@@ -18,6 +18,10 @@ import java.util.List;
 @Data
 @Builder(toBuilder = true)
 public class UserResponse {
+    /** ユーザーID。 */
+    @Schema(description = "ユーザーID", example = OpenApiExamples.Users.ID)
+    private Long id;
+
     /** 氏名。 */
     @Schema(description = "氏名", example = OpenApiExamples.Users.NAME)
     private String name;
