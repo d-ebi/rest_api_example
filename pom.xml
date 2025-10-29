@@ -123,6 +123,13 @@
                 <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
+                        <id>repackage</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>pre-integration-test</id>
                         <phase>pre-integration-test</phase>
                         <goals>

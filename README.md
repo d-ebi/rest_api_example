@@ -40,6 +40,19 @@ mvn spring-boot:run -Dspring-boot.run.profiles=structured
 
 アプリ起動後、DB は `./data/app.db` を使用します。テーブル定義は `src/main/resources/schema.sql` に基づいて作成されます。
 
+## Swagger
+
+起動後、以下にアクセスすることでSwagger UIにアクセスすることができます。
+
+http://localhost:8080/swagger-ui.html
+
+## jar起動
+起動時は以下のように起動することで、構造化ログの出力有無、Swagger UIの提供有無を切り替えられます。
+
+```
+java -Dspring-boot.run.profiles=structured -jar target/rest-api-example-0.0.1-SNAPSHOT.jar --swagger.ui.enabled=false
+```
+
 ## エンドポイント一覧（v1）
 
 - GET `/api/v1/users`

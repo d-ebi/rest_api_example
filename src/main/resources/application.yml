@@ -34,3 +34,6 @@ logging:
 message:
   encoding:
     charset: UTF-8
+springdoc:
+  swagger-ui:
+    enabled: ${swagger.ui.enabled:true}
