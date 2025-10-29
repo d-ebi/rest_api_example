@@ -17,11 +17,11 @@ public final class ErrorCatalog {
 
     static {
         EnumMap<HttpStatus, String> defaults = new EnumMap<>(HttpStatus.class);
-        defaults.put(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED);
+        defaults.put(HttpStatus.BAD_REQUEST, Messages.BAD_REQUEST_TOP);
         defaults.put(HttpStatus.NOT_FOUND, Messages.NOT_FOUND);
         defaults.put(HttpStatus.METHOD_NOT_ALLOWED, Messages.METHOD_NOT_ALLOWED);
         defaults.put(HttpStatus.NOT_ACCEPTABLE, Messages.NOT_ACCEPTABLE);
-        defaults.put(HttpStatus.UNPROCESSABLE_ENTITY, Messages.VALIDATION_FAILED);
+        defaults.put(HttpStatus.UNPROCESSABLE_ENTITY, Messages.UNPROCESSABLE_TOP);
         defaults.put(HttpStatus.INTERNAL_SERVER_ERROR, Messages.UNEXPECTED_ERROR);
         DEFAULT_MESSAGES = Collections.unmodifiableMap(defaults);
     }
@@ -64,12 +64,15 @@ public final class ErrorCatalog {
         private Messages() {
         }
 
-        public static final String VALIDATION_FAILED = MessageAccessor.message("error.validation.failed");
+        public static final String BAD_REQUEST_TOP = MessageAccessor.message("error.badrequest.top");
+        public static final String UNPROCESSABLE_TOP = MessageAccessor.message("error.unprocessable.top");
+        public static final String VALIDATION_FAILED = MessageAccessor.message("error.validation.detail");
         public static final String DUPLICATE_RESOURCE = MessageAccessor.message("error.duplicate.resource");
         public static final String INVALID_PERIOD = MessageAccessor.message("error.period.invalid");
         public static final String USER_NOT_FOUND = MessageAccessor.message("error.user.notFound");
         public static final String INVALID_USER_ID = MessageAccessor.message("error.user.invalidId");
         public static final String MALFORMED_JSON = MessageAccessor.message("error.malformed.json");
+        public static final String INVALID_INPUT_FORMAT = MessageAccessor.message("error.invalid.format");
         public static final String METHOD_NOT_ALLOWED = MessageAccessor.message("error.method.notAllowed");
         public static final String NOT_ACCEPTABLE = MessageAccessor.message("error.notAcceptable");
         public static final String TYPE_MISMATCH = MessageAccessor.message("error.type.mismatch");

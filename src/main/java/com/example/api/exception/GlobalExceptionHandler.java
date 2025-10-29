@@ -1,6 +1,7 @@
 package com.example.api.exception;
 
 import com.example.api.config.TraceIdFilter;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,10 @@ public class GlobalExceptionHandler {
                         null))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForFieldErrors(ex.getBindingResult().getFieldErrors());
-        return response(status, ErrorCatalog.Messages.VALIDATION_FAILED, details);
+        String message = status == HttpStatus.BAD_REQUEST
+                ? ErrorCatalog.Messages.BAD_REQUEST_TOP
+                : ErrorCatalog.Messages.UNPROCESSABLE_TOP;
+        return response(status, message, details);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -73,7 +78,10 @@ public class GlobalExceptionHandler {
                         null))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForViolations(violations);
-        return response(status, ErrorCatalog.Messages.VALIDATION_FAILED, details);
+        String message = status == HttpStatus.BAD_REQUEST
+                ? ErrorCatalog.Messages.BAD_REQUEST_TOP
+                : ErrorCatalog.Messages.UNPROCESSABLE_TOP;
+        return response(status, message, details);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -91,7 +99,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<ApiErrorResponse> handleUnprocessable(UnprocessableEntityException ex) {
         logClientEvent("Unprocessable entity", ex);
-        return response(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), ex.getErrors());
+        return response(HttpStatus.UNPROCESSABLE_ENTITY, ErrorCatalog.Messages.UNPROCESSABLE_TOP, ex.getErrors());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -109,13 +117,32 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
         logClientEvent("Type mismatch", ex);
-        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.TYPE_MISMATCH);
+        Map<String, Object> constraints = Map.of(
+                "invalidValue", String.valueOf(ex.getValue()),
+                "expectedType", ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown"
+        );
+        List<FieldErrorDetail> details = List.of(ErrorCatalog.fieldError(
+                ErrorCatalog.DetailCodes.VALIDATION_ERROR,
+                ErrorCatalog.Messages.TYPE_MISMATCH,
+                ex.getName(),
+                constraints));
+        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
         logClientEvent("Message not readable", ex);
-        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.MALFORMED_JSON);
+        Throwable cause = ex.getCause();
+        if (cause instanceof InvalidFormatException invalidFormat) {
+            List<FieldErrorDetail> details = buildInvalidFormatDetails(invalidFormat);
+            return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
+        }
+        List<FieldErrorDetail> details = List.of(ErrorCatalog.fieldError(
+                ErrorCatalog.DetailCodes.VALIDATION_ERROR,
+                ErrorCatalog.Messages.MALFORMED_JSON,
+                null,
+                null));
+        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -127,7 +154,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequest(BadRequestException ex) {
         logClientEvent("Bad request", ex);
-        return response(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getErrors());
+        List<FieldErrorDetail> details = ex.getErrors();
+        if (details == null || details.isEmpty()) {
+            details = List.of(ErrorCatalog.fieldError(
+                    ErrorCatalog.DetailCodes.VALIDATION_ERROR,
+                    ex.getMessage(),
+                    null,
+                    null));
+        }
+        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
@@ -169,6 +204,27 @@ public class GlobalExceptionHandler {
             return ex.getMessage();
         }
         return status == HttpStatus.INTERNAL_SERVER_ERROR ? ErrorCatalog.Messages.UNEXPECTED_ERROR : null;
+    }
+
+    private List<FieldErrorDetail> buildInvalidFormatDetails(InvalidFormatException ex) {
+        String invalidValue = String.valueOf(ex.getValue());
+        String expectedType = ex.getTargetType() != null ? ex.getTargetType().getSimpleName() : "unknown";
+        Map<String, Object> constraints = Map.of(
+                "invalidValue", invalidValue,
+                "expectedType", expectedType
+        );
+        String fieldPath = ex.getPath().stream()
+                .map(ref -> ref.getFieldName() != null ? ref.getFieldName() : "[" + ref.getIndex() + "]")
+                .collect(Collectors.joining("."))
+                .replace(".[", "[");
+        if (fieldPath.isBlank()) {
+            fieldPath = "payload";
+        }
+        return List.of(ErrorCatalog.fieldError(
+                ErrorCatalog.DetailCodes.VALIDATION_ERROR,
+                ErrorCatalog.Messages.INVALID_INPUT_FORMAT,
+                fieldPath,
+                constraints));
     }
 
     private HttpStatus resolveStatusForFieldErrors(List<org.springframework.validation.FieldError> errors) {
