@@ -1,5 +1,6 @@
 package com.example.api.exception;
 
+import com.example.api.openapi.OpenApiExamples;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -13,13 +14,13 @@ import lombok.Builder;
 @Data
 @Builder(toBuilder = true)
 public class FieldErrorDetail {
-    @Schema(description = "詳細エラーコード", example = "VALIDATION_ERROR")
+    @Schema(description = "詳細エラーコード", example = OpenApiExamples.Errors.DETAIL_CODE)
     private String code;
-    @Schema(description = "理由（要求仕様に合わせキー名はreson）", example = "must not be blank")
+    @Schema(description = "理由（要求仕様に合わせキー名はreson）", example = OpenApiExamples.Errors.DETAIL_REASON)
     private String reson; // intentionally matching requested key spelling
-    @Schema(description = "対象フィールド", example = "name")
+    @Schema(description = "対象フィールド", example = OpenApiExamples.Errors.DETAIL_FIELD)
     private String field;
-    @Schema(description = "制約情報（任意、構造は実装依存）", example = "{\"min\":1,\"max\":200}")
+    @Schema(description = "制約情報（任意、構造は実装依存）", example = OpenApiExamples.Errors.DETAIL_CONSTRAINTS)
     private Object constraints;
 
     public FieldErrorDetail() {}

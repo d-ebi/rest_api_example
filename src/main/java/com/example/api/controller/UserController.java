@@ -6,6 +6,7 @@ import com.example.api.dto.UserRequest;
 import com.example.api.dto.UserResponse;
 import com.example.api.exception.ApiErrorResponse;
 import com.example.api.service.UserService;
+import com.example.api.openapi.OpenApiExamples;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
@@ -56,30 +57,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserListResponse.class),
-                            examples = @ExampleObject(value = """
-                            {
-                              "count": 25,
-                              "page": {"offset":0,"limit":10,"total":25,"hasNext":true},
-                              "users": [
-                                {
-                                  "name": "Taro Yamada",
-                                  "age": 30,
-                                  "birthday": "1994/04/01",
-                                  "height": 170.5,
-                                  "zipCode": "123-4567",
-                                  "careerHistories": [
-                                    {
-                                      "title": "Software Engineer",
-                                      "period": {
-                                        "from": "2018/04/01",
-                                        "to": "2021/03/31"
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                            """))),
+                            examples = @ExampleObject(value = OpenApiExamples.Responses.USER_LIST))),
             @ApiResponse(responseCode = "400", description = "不正なパラメータ",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -100,15 +78,15 @@ public class UserController {
                             schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     public ResponseEntity<UserListResponse> list(
-            @Parameter(description = "名前の部分一致フィルタ", example = "Tar",
+            @Parameter(description = "名前の部分一致フィルタ", example = OpenApiExamples.Users.SEARCH_NAME,
                     schema = @Schema(minLength = 1, maxLength = 200, pattern = ".*\\D.*"))
             @RequestParam(name = "name", required = false)
             @Size(min = 1, max = 200)
             @javax.validation.constraints.Pattern(regexp = ".*\\D.*", message = "must contain at least one non-digit") String name,
-            @Parameter(description = "取得件数", example = "10",
+            @Parameter(description = "取得件数", example = OpenApiExamples.Page.LIMIT,
                     schema = @Schema(minimum = "0", maximum = "100"))
             @RequestParam(name = "limit", defaultValue = "10") @Min(0) @Max(100) int limit,
-            @Parameter(description = "開始オフセット", example = "0",
+            @Parameter(description = "開始オフセット", example = OpenApiExamples.Page.OFFSET,
                     schema = @Schema(minimum = "0"))
             @RequestParam(name = "offset", defaultValue = "0") @Min(0) int offset
     ) {
@@ -136,7 +114,7 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Created",
                     headers = {@Header(name = "Location", description = "作成したリソースのURI",
-                            schema = @Schema(type = "string", example = "/api/v1/users/1"))}),
+                            schema = @Schema(type = "string", example = OpenApiExamples.Headers.LOCATION))}),
             @ApiResponse(responseCode = "400", description = "不正なリクエスト",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class))),
@@ -159,24 +137,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserRequest.class),
-                    examples = @ExampleObject(value = """
-                    {
-                      "name": "Taro Yamada",
-                      "age": 30,
-                      "birthday": "1994/04/01",
-                      "height": 170.5,
-                      "zipCode": "123-4567",
-                      "careerHistories": [
-                        {
-                          "title": "Software Engineer",
-                          "period": {
-                            "from": "2018/04/01",
-                            "to": "2021/03/31"
-                          }
-                        }
-                      ]
-                    }
-                    """)))
+                    examples = @ExampleObject(value = OpenApiExamples.Requests.USER_CREATE)))
     public ResponseEntity<Void> create(@Valid @RequestBody UserRequest userRequest) {
         Long createdUserId = userService.create(userRequest);
         HttpHeaders headers = new HttpHeaders();
@@ -210,24 +171,7 @@ public class UserController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserRequest.class),
-                    examples = @ExampleObject(value = """
-                    {
-                      "name": "Taro Yamada",
-                      "age": 31,
-                      "birthday": "1994/04/01",
-                      "height": 171.0,
-                      "zipCode": "123-4567",
-                      "careerHistories": [
-                        {
-                          "title": "Senior Engineer",
-                          "period": {
-                            "from": "2021/04/01",
-                            "to": "2024/03/31"
-                          }
-                        }
-                      ]
-                    }
-                    """)))
+                    examples = @ExampleObject(value = OpenApiExamples.Requests.USER_UPDATE)))
     public ResponseEntity<Void> update(@PathVariable("user_id") Long userId, @Valid @RequestBody UserRequest userRequest) {
         userService.update(userId, userRequest);
         return ResponseEntity.noContent().build();
@@ -271,31 +215,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = UserResponse.class),
-                            examples = @ExampleObject(value = """
-                            {
-                              "name": "Taro Yamada",
-                              "age": 30,
-                              "birthday": "1994/04/01",
-                              "height": 170.5,
-                              "zipCode": "123-4567",
-                              "careerHistories": [
-                                {
-                                  "title": "Software Engineer",
-                                  "period": {
-                                    "from": "2018/04/01",
-                                    "to": "2021/03/31"
-                                  }
-                                },
-                                {
-                                  "title": "Senior Engineer",
-                                  "period": {
-                                    "from": "2021/04/01",
-                                    "to": "2024/03/31"
-                                  }
-                                }
-                              ]
-                            }
-                            """))),
+                            examples = @ExampleObject(value = OpenApiExamples.Responses.USER_DETAIL))),
             @ApiResponse(responseCode = "400", description = "不正なリクエスト",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class))),

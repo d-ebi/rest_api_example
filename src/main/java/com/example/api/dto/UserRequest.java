@@ -1,5 +1,6 @@
 package com.example.api.dto;
 
+import com.example.api.openapi.OpenApiExamples;
 import com.example.api.validation.DateInRange;
 import com.example.api.validation.NotNumericOnly;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -17,24 +18,7 @@ import java.util.List;
  * バリデーションアノテーションで各フィールドの制約を表現します。
  */
 @Schema(name = "UserRequest", description = "ユーザー作成/更新のリクエスト",
-        example = """
-        {
-          "name": "Taro Yamada",
-          "age": 30,
-          "birthday": "1994/04/01",
-          "height": 170.5,
-          "zipCode": "123-4567",
-          "careerHistories": [
-            {
-              "title": "Software Engineer",
-              "period": {
-                "from": "2018/04/01",
-                "to": "2021/03/31"
-              }
-            }
-          ]
-        }
-        """)
+        example = OpenApiExamples.Requests.USER_CREATE)
 @Data
 public class UserRequest {
     /**
@@ -43,7 +27,7 @@ public class UserRequest {
     @NotBlank
     @Size(min = 1, max = 200)
     @NotNumericOnly
-    @Schema(description = "氏名（1〜200文字、数字のみ不可）", example = "Taro Yamada", required = true, minLength = 1, maxLength = 200)
+    @Schema(description = "氏名（1〜200文字、数字のみ不可）", example = OpenApiExamples.Users.NAME, required = true, minLength = 1, maxLength = 200)
     private String name;
 
     /**
@@ -52,7 +36,7 @@ public class UserRequest {
     @NotNull
     @Min(0)
     @Max(150)
-    @Schema(description = "年齢（0〜150）", example = "30", required = true, minimum = "0", maximum = "150")
+    @Schema(description = "年齢（0〜150）", example = OpenApiExamples.Users.AGE, required = true, minimum = "0", maximum = "150")
     private Integer age;
 
     /**
@@ -61,7 +45,7 @@ public class UserRequest {
     @NotNull
     @JsonFormat(pattern = "yyyy/MM/dd")
     @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "birthday out of range")
-    @Schema(description = "生年月日（yyyy/MM/dd）", example = "1994/04/01", required = true, pattern = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$")
+    @Schema(description = "生年月日（yyyy/MM/dd）", example = OpenApiExamples.Users.BIRTHDAY, required = true, pattern = "^[0-9]{4}/[0-9]{2}/[0-9]{2}$")
     private LocalDate birthday;
 
     /**
@@ -70,7 +54,7 @@ public class UserRequest {
     @Digits(integer = 3, fraction = 1)
     @DecimalMin(value = "0.0")
     @DecimalMax(value = "300.0")
-    @Schema(description = "身長（整数3桁・小数1桁、0.0〜300.0）", example = "170.5", minimum = "0.0", maximum = "300.0", type = "number", format = "double")
+    @Schema(description = "身長（整数3桁・小数1桁、0.0〜300.0）", example = OpenApiExamples.Users.HEIGHT, minimum = "0.0", maximum = "300.0", type = "number", format = "double")
     private BigDecimal height; // optional
 
     /**
@@ -78,7 +62,7 @@ public class UserRequest {
      */
     @Pattern(regexp = "\\d{3}-\\d{4}")
     @Size(min = 8, max = 8)
-    @Schema(description = "郵便番号（000-0000形式）", example = "123-4567", minLength = 8, maxLength = 8, pattern = "^\\d{3}-\\d{4}$")
+    @Schema(description = "郵便番号（000-0000形式）", example = OpenApiExamples.Users.ZIP_CODE, minLength = 8, maxLength = 8, pattern = "^\\d{3}-\\d{4}$")
     private String zipCode; // optional
 
     /**
