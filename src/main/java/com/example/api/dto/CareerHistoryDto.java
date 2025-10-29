@@ -17,6 +17,10 @@ import javax.validation.constraints.Size;
         example = OpenApiExamples.Career.JSON)
 @Data
 public class CareerHistoryDto {
+    /** 職歴ID。 */
+    @Schema(description = "職歴ID", example = OpenApiExamples.Career.ID)
+    private Long id;
+
     /** 職務タイトル（必須・1〜200文字）。 */
     @NotBlank(message = "{career.title.notBlank}")
     @Size(min = 1, max = 200, message = "{career.title.size}")

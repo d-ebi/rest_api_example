@@ -2,7 +2,7 @@ package com.example.api.service.mapper;
 
 import com.example.api.dto.CareerHistoryDto;
 import com.example.api.dto.PeriodDto;
-import com.example.api.dto.UserRequest;
+import com.example.api.dto.UserCreateRequest;
 import com.example.api.dto.UserResponse;
 import com.example.api.entity.CareerHistoryEntity;
 import com.example.api.entity.UserEntity;
@@ -30,7 +30,7 @@ public interface UserMapStructMapper {
     @Mapping(target = "createdAt", expression = "java(now())")
     @Mapping(target = "updatedAt", expression = "java(now())")
     @Mapping(target = "careerHistories", source = "careerHistories")
-    UserEntity toEntityForCreate(UserRequest userRequest);
+    UserEntity toEntityForCreate(UserCreateRequest userRequest);
 
     /**
      * 子エンティティへ親参照を付与します。
@@ -47,34 +47,10 @@ public interface UserMapStructMapper {
     /**
      * 更新用にDTOの内容をエンティティへ反映します。
      */
-    @Mapping(target = "birthday", expression = "java(userRequest.getBirthday().format(F))")
-    @Mapping(target = "height", expression = "java(roundHeight(userRequest.getHeight()))")
-    @Mapping(target = "updatedAt", expression = "java(now())")
-    @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "careerHistories", source = "careerHistories")
-    void updateEntity(@MappingTarget UserEntity userEntity, UserRequest userRequest);
-
-    /**
-     * 更新時に職歴の差し替え・逆参照を補正します。
-     */
-    @AfterMapping
-    default void resetCareers(@MappingTarget UserEntity userEntity, UserRequest userRequest) {
-        if (userRequest.getCareerHistories() == null) {
-            userEntity.setCareerHistories(null);
-        } else {
-            // ensure back-reference
-            if (userEntity.getCareerHistories() != null) {
-                for (CareerHistoryEntity careerHistoryEntity : userEntity.getCareerHistories()) {
-                    careerHistoryEntity.setUser(userEntity);
-                }
-            }
-        }
-    }
-
     /**
      * エンティティからレスポンスDTOへ変換します。
      */
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "age", source = "age")
     @Mapping(target = "birthday", expression = "java(java.time.LocalDate.parse(userEntity.getBirthday(), F))")
@@ -86,6 +62,7 @@ public interface UserMapStructMapper {
     /**
      * 職歴エンティティをDTOへ変換します。
      */
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "title", source = "title")
     @Mapping(target = "period", source = ".")
     CareerHistoryDto toDto(CareerHistoryEntity careerHistoryEntity);
@@ -103,6 +80,7 @@ public interface UserMapStructMapper {
     /**
      * 職歴DTOをエンティティへ変換します（親参照は後段で付与）。
      */
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "title", source = "title")
     @Mapping(target = "periodFrom", expression = "java(careerHistoryDto.getPeriod().getFrom().format(F))")
