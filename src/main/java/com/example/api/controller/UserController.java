@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -157,7 +156,7 @@ public class UserController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class)))
     })
-    @RequestBody(required = true,
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserRequest.class),
                     examples = @ExampleObject(value = """
@@ -208,7 +207,7 @@ public class UserController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class)))
     })
-    @RequestBody(required = true,
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = UserRequest.class),
                     examples = @ExampleObject(value = """
