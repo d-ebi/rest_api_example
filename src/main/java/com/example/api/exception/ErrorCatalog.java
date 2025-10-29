@@ -100,8 +100,8 @@ public final class ErrorCatalog {
      * @param constraints 制約情報
      * @return FieldErrorDetail
      */
-    public static FieldErrorDetail fieldError(String code, String reason, String field, Object constraints) {
-        return new FieldErrorDetail(code, reason, field, constraints);
+    public static FieldErrorDetail fieldError(String code, String reason, String field, String location, Object constraints) {
+        return new FieldErrorDetail(code, reason, field, location, constraints);
     }
 
     /**

@@ -20,15 +20,18 @@ public class FieldErrorDetail {
     private String reason;
     @Schema(description = "対象フィールド", example = OpenApiExamples.Errors.DETAIL_FIELD)
     private String field;
+    @Schema(description = "エラー発生箇所", example = "body")
+    private String location;
     @Schema(description = "制約情報（任意、構造は実装依存）", example = OpenApiExamples.Errors.DETAIL_CONSTRAINTS)
     private Object constraints;
 
     public FieldErrorDetail() {}
 
-    public FieldErrorDetail(String code, String reason, String field, Object constraints) {
+    public FieldErrorDetail(String code, String reason, String field, String location, Object constraints) {
         this.code = code;
         this.reason = reason;
         this.field = field;
+        this.location = location;
         this.constraints = constraints;
     }
 

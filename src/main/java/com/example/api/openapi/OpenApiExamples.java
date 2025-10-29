@@ -168,6 +168,101 @@ public final class OpenApiExamples {
         public static final String LOCATION = "/api/v1/users/1";
     }
 
+    public static final class ErrorResponses {
+        private ErrorResponses() {
+        }
+
+        public static final String BAD_REQUEST = """
+                {
+                  "code": "BAD_REQUEST",
+                  "message": "入力内容に誤りがあります",
+                  "traceId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                  "errors": [
+                    {
+                      "code": "VALIDATION_ERROR",
+                      "reason": "limitは0〜100の範囲で指定してください",
+                      "location": "query",
+                      "field": "limit",
+                      "constraints": {
+                        "invalidValue": "-1",
+                        "expectedType": "Integer"
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        public static final String UNPROCESSABLE_ENTITY = """
+                {
+                  "code": "UNPROCESSABLE_ENTITY",
+                  "message": "リクエスト内容に不備があります",
+                  "traceId": "bbbbbbbb-cccc-dddd-eeee-ffffffffffff",
+                  "errors": [
+                    {
+                      "code": "INVALID_PERIOD",
+                      "reason": "period.fromはperiod.to以前の日付を指定してください",
+                      "location": "body",
+                      "field": "careerHistories.period",
+                      "constraints": {
+                        "invalidPeriod": true
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        public static final String NOT_FOUND = """
+                {
+                  "code": "NOT_FOUND",
+                  "message": "リソースが見つかりません",
+                  "traceId": "cccccccc-dddd-eeee-ffff-000000000000"
+                }
+                """;
+
+        public static final String METHOD_NOT_ALLOWED = """
+                {
+                  "code": "METHOD_NOT_ALLOWED",
+                  "message": "許可されていないHTTPメソッドです",
+                  "traceId": "dddddddd-eeee-ffff-0000-111111111111"
+                }
+                """;
+
+        public static final String NOT_ACCEPTABLE = """
+                {
+                  "code": "NOT_ACCEPTABLE",
+                  "message": "受理できないメディアタイプです",
+                  "traceId": "eeeeeeee-ffff-0000-1111-222222222222"
+                }
+                """;
+
+        public static final String CONFLICT = """
+                {
+                  "code": "CONFLICT",
+                  "message": "リソースが重複しています",
+                  "traceId": "ffffffff-0000-1111-2222-333333333333",
+                  "errors": [
+                    {
+                      "code": "DUPLICATE",
+                      "reason": "nameは既に存在しています",
+                      "location": "body",
+                      "field": "name",
+                      "constraints": {
+                        "unique": true
+                      }
+                    }
+                  ]
+                }
+                """;
+
+        public static final String INTERNAL_SERVER_ERROR = """
+                {
+                  "code": "INTERNAL_SERVER_ERROR",
+                  "message": "予期しないエラーが発生しました",
+                  "traceId": "99999999-aaaa-bbbb-cccc-dddddddddddd"
+                }
+                """;
+    }
+
     public static final class Errors {
         private Errors() {
         }

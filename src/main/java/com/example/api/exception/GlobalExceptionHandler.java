@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +26,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import javax.validation.ElementKind;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +39,9 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final String LOCATION_BODY = "body";
+    private static final String LOCATION_QUERY = "query";
+    private static final String LOCATION_PATH = "path";
 
     private String traceId() {
         String id = MDC.get(TraceIdFilter.TRACE_ID_KEY);
@@ -57,6 +65,7 @@ public class GlobalExceptionHandler {
                         ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                         err.getDefaultMessage(),
                         err.getField(),
+                        LOCATION_BODY,
                         null))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForFieldErrors(ex.getBindingResult().getFieldErrors());
@@ -75,6 +84,7 @@ public class GlobalExceptionHandler {
                         ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                         v.getMessage(),
                         v.getPropertyPath() != null ? v.getPropertyPath().toString() : null,
+                        resolveLocationForViolation(v),
                         null))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForViolations(violations);
@@ -125,6 +135,7 @@ public class GlobalExceptionHandler {
                 ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                 ErrorCatalog.Messages.TYPE_MISMATCH,
                 ex.getName(),
+                resolveLocationForParameter(ex.getParameter()),
                 constraints));
         return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
     }
@@ -141,6 +152,7 @@ public class GlobalExceptionHandler {
                 ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                 ErrorCatalog.Messages.MALFORMED_JSON,
                 null,
+                LOCATION_BODY,
                 null));
         return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
     }
@@ -160,6 +172,7 @@ public class GlobalExceptionHandler {
                     ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                     ex.getMessage(),
                     null,
+                    LOCATION_PATH,
                     null));
         }
         return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.BAD_REQUEST_TOP, details);
@@ -224,6 +237,7 @@ public class GlobalExceptionHandler {
                 ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                 ErrorCatalog.Messages.INVALID_INPUT_FORMAT,
                 fieldPath,
+                LOCATION_BODY,
                 constraints));
     }
 
@@ -264,14 +278,37 @@ public class GlobalExceptionHandler {
     }
 
     private void logClientEvent(String event, Exception ex) {
-        log.info("{}: {}", event, ex.getMessage());
+        log.info("{}: {} api_code={}", event, ex.getMessage(), currentApiCode());
     }
 
     private void logByStatus(String event, Exception ex, HttpStatus status) {
         if (status.is4xxClientError()) {
             logClientEvent(event, ex);
         } else {
-            log.error("{}: {}", event, ex.getMessage(), ex);
+            log.error("{}: {} api_code={}", event, ex.getMessage(), currentApiCode(), ex);
         }
+    }
+
+    private String currentApiCode() {
+        String code = MDC.get("api_code");
+        return code != null ? code : "";
+    }
+
+    private String resolveLocationForViolation(ConstraintViolation<?> violation) {
+        javax.validation.Path path = violation.getPropertyPath();
+        for (javax.validation.Path.Node node : path) {
+            if (node.getKind() == ElementKind.PARAMETER) {
+                return LOCATION_QUERY;
+            }
+        }
+        return LOCATION_QUERY;
+    }
+
+    private String resolveLocationForParameter(MethodParameter parameter) {
+        if (parameter == null) return LOCATION_QUERY;
+        if (parameter.hasParameterAnnotation(PathVariable.class)) return LOCATION_PATH;
+        if (parameter.hasParameterAnnotation(RequestBody.class)) return LOCATION_BODY;
+        if (parameter.hasParameterAnnotation(RequestParam.class)) return LOCATION_QUERY;
+        return LOCATION_QUERY;
     }
 }

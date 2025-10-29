@@ -43,6 +43,7 @@ public class UserService {
                     ErrorCatalog.DetailCodes.DUPLICATE,
                     ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
                     "name",
+                    "body",
                     Map.of("unique", true));
             throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
         }
@@ -69,6 +70,7 @@ public class UserService {
                     ErrorCatalog.DetailCodes.DUPLICATE,
                     ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
                     "name",
+                    "body",
                     Map.of("unique", true));
             throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
         }
@@ -142,6 +144,7 @@ public class UserService {
                             ErrorCatalog.DetailCodes.INVALID_PERIOD,
                             ErrorCatalog.Reasons.PERIOD_FROM_AFTER_TO,
                             "careerHistories.period",
+                            "body",
                             Map.of("from", careerHistory.getPeriod().getFrom().toString(),
                                     "to", careerHistory.getPeriod().getTo().toString()));
                     throw new UnprocessableEntityException(ErrorCatalog.Messages.INVALID_PERIOD, List.of(err));
