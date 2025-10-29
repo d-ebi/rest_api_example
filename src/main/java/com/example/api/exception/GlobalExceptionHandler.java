@@ -19,8 +19,10 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,7 +49,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
-        log.error("Validation error: {}", ex.getMessage(), ex);
+        logClientEvent("Validation error", ex);
         List<FieldErrorDetail> details = ex.getBindingResult().getFieldErrors().stream()
                 .map(err -> ErrorCatalog.fieldError(
                         ErrorCatalog.DetailCodes.VALIDATION_ERROR,
@@ -55,91 +57,94 @@ public class GlobalExceptionHandler {
                         err.getField(),
                         null))
                 .collect(Collectors.toList());
-        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.VALIDATION_FAILED, details);
+        HttpStatus status = resolveStatusForFieldErrors(ex.getBindingResult().getFieldErrors());
+        return response(status, ErrorCatalog.Messages.VALIDATION_FAILED, details);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
-        log.error("Constraint violation: {}", ex.getMessage(), ex);
-        List<FieldErrorDetail> details = ex.getConstraintViolations().stream()
+        logClientEvent("Constraint violation", ex);
+        Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
+        List<FieldErrorDetail> details = violations.stream()
                 .map(v -> ErrorCatalog.fieldError(
                         ErrorCatalog.DetailCodes.VALIDATION_ERROR,
                         v.getMessage(),
                         v.getPropertyPath() != null ? v.getPropertyPath().toString() : null,
                         null))
                 .collect(Collectors.toList());
-        return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.VALIDATION_FAILED, details);
+        HttpStatus status = resolveStatusForViolations(violations);
+        return response(status, ErrorCatalog.Messages.VALIDATION_FAILED, details);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(ResourceNotFoundException ex) {
-        log.error("Resource not found: {}", ex.getMessage(), ex);
+        logClientEvent("Resource not found", ex);
         return response(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleConflict(ConflictException ex) {
-        log.error("Conflict: {}", ex.getMessage(), ex);
+        logClientEvent("Conflict", ex);
         return response(HttpStatus.CONFLICT, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(UnprocessableEntityException.class)
     public ResponseEntity<ApiErrorResponse> handleUnprocessable(UnprocessableEntityException ex) {
-        log.error("Unprocessable entity: {}", ex.getMessage(), ex);
+        logClientEvent("Unprocessable entity", ex);
         return response(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodNotAllowed(HttpRequestMethodNotSupportedException ex) {
-        log.error("Method not allowed: {}", ex.getMessage(), ex);
+        logClientEvent("Method not allowed", ex);
         return response(HttpStatus.METHOD_NOT_ALLOWED, ErrorCatalog.Messages.METHOD_NOT_ALLOWED);
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     public ResponseEntity<ApiErrorResponse> handleNotAcceptable(HttpMediaTypeNotAcceptableException ex) {
-        log.error("Not acceptable: {}", ex.getMessage(), ex);
+        logClientEvent("Not acceptable", ex);
         return response(HttpStatus.NOT_ACCEPTABLE, ErrorCatalog.Messages.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
-        log.error("Type mismatch: {}", ex.getMessage(), ex);
+        logClientEvent("Type mismatch", ex);
         return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.TYPE_MISMATCH);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleNotReadable(HttpMessageNotReadableException ex) {
-        log.error("Message not readable: {}", ex.getMessage(), ex);
+        logClientEvent("Message not readable", ex);
         return response(HttpStatus.BAD_REQUEST, ErrorCatalog.Messages.MALFORMED_JSON);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNoHandler(NoHandlerFoundException ex) {
-        log.error("No handler found: {}", ex.getMessage(), ex);
+        logClientEvent("No handler found", ex);
         return response(HttpStatus.NOT_FOUND, ErrorCatalog.Messages.NOT_FOUND);
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ApiErrorResponse> handleBadRequest(BadRequestException ex) {
-        log.error("Bad request: {}", ex.getMessage(), ex);
+        logClientEvent("Bad request", ex);
         return response(HttpStatus.BAD_REQUEST, ex.getMessage(), ex.getErrors());
     }
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiErrorResponse> handleResponseStatus(ResponseStatusException ex) {
-        log.error("Response status exception: {}", ex.getMessage(), ex);
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
         if (status == null) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
         }
+        logByStatus("Response status exception", ex, status);
         String message = StringUtils.hasText(ex.getReason()) ? ex.getReason() : null;
         return response(status, message);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleOther(Exception ex) {
-        log.error("Unexpected error: {}", ex.getMessage(), ex);
         HttpStatus status = resolveStatusFromAnnotation(ex);
+        logByStatus("Unexpected error", ex, status);
         String message = resolveMessageFromAnnotation(ex, status);
         return response(status, message);
     }
@@ -167,5 +172,53 @@ public class GlobalExceptionHandler {
             return ex.getMessage();
         }
         return status == HttpStatus.INTERNAL_SERVER_ERROR ? ErrorCatalog.Messages.UNEXPECTED_ERROR : null;
+    }
+
+    private HttpStatus resolveStatusForFieldErrors(List<org.springframework.validation.FieldError> errors) {
+        boolean badRequest = errors.stream().anyMatch(this::isBadRequestViolation);
+        return badRequest ? HttpStatus.BAD_REQUEST : HttpStatus.UNPROCESSABLE_ENTITY;
+    }
+
+    private boolean isBadRequestViolation(org.springframework.validation.FieldError error) {
+        if (error.isBindingFailure()) {
+            return true;
+        }
+        String[] codes = error.getCodes();
+        if (codes == null) return false;
+        for (String code : codes) {
+            if (code == null) continue;
+            String simple = simpleCode(code);
+            if ("NotNull".equals(simple)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private HttpStatus resolveStatusForViolations(Set<ConstraintViolation<?>> violations) {
+        boolean badRequest = violations.stream().anyMatch(this::isBadRequestViolation);
+        return badRequest ? HttpStatus.BAD_REQUEST : HttpStatus.UNPROCESSABLE_ENTITY;
+    }
+
+    private boolean isBadRequestViolation(ConstraintViolation<?> violation) {
+        String annotationName = violation.getConstraintDescriptor().getAnnotation().annotationType().getSimpleName();
+        return "NotNull".equals(annotationName);
+    }
+
+    private String simpleCode(String code) {
+        int idx = code.lastIndexOf('.');
+        return (idx >= 0 && idx < code.length() - 1) ? code.substring(idx + 1) : code;
+    }
+
+    private void logClientEvent(String event, Exception ex) {
+        log.info("{}: {}", event, ex.getMessage());
+    }
+
+    private void logByStatus(String event, Exception ex, HttpStatus status) {
+        if (status.is4xxClientError()) {
+            logClientEvent(event, ex);
+        } else {
+            log.error("{}: {}", event, ex.getMessage(), ex);
+        }
     }
 }

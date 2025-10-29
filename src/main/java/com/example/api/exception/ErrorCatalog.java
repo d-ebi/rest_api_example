@@ -16,9 +16,11 @@ public final class ErrorCatalog {
 
     static {
         EnumMap<HttpStatus, String> defaults = new EnumMap<>(HttpStatus.class);
+        defaults.put(HttpStatus.BAD_REQUEST, Messages.VALIDATION_FAILED);
         defaults.put(HttpStatus.NOT_FOUND, Messages.NOT_FOUND);
         defaults.put(HttpStatus.METHOD_NOT_ALLOWED, Messages.METHOD_NOT_ALLOWED);
         defaults.put(HttpStatus.NOT_ACCEPTABLE, Messages.NOT_ACCEPTABLE);
+        defaults.put(HttpStatus.UNPROCESSABLE_ENTITY, Messages.VALIDATION_FAILED);
         defaults.put(HttpStatus.INTERNAL_SERVER_ERROR, Messages.UNEXPECTED_ERROR);
         DEFAULT_MESSAGES = Collections.unmodifiableMap(defaults);
     }
