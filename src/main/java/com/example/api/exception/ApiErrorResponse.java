@@ -18,11 +18,11 @@ import java.util.List;
 @Data
 @Builder(toBuilder = true)
 public class ApiErrorResponse {
-    @Schema(description = "エラーコード", example = OpenApiExamples.Errors.CODE)
+    @Schema(description = "エラーコード", example = "BAD_REQUEST")
     private String code;
-    @Schema(description = "メッセージ", example = OpenApiExamples.Errors.MESSAGE)
+    @Schema(description = "メッセージ", example = "入力内容に誤りがあります")
     private String message;
-    @Schema(description = "トレースID", example = OpenApiExamples.Errors.TRACE_ID)
+    @Schema(description = "トレースID", example = "f1c2d3e4-5678-90ab-cdef-1234567890ab")
     private String traceId;
     @ArraySchema(arraySchema = @Schema(description = "詳細エラー一覧"), schema = @Schema(implementation = FieldErrorDetail.class))
     private List<FieldErrorDetail> errors;

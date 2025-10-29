@@ -64,17 +64,17 @@ public final class ErrorCatalog {
         private Messages() {
         }
 
-        public static final String VALIDATION_FAILED = "入力内容に誤りがあります";
-        public static final String DUPLICATE_RESOURCE = "リソースが重複しています";
-        public static final String INVALID_PERIOD = "期間指定が不正です";
-        public static final String USER_NOT_FOUND = "ユーザーが見つかりません";
-        public static final String INVALID_USER_ID = "指定したuser_idが不正です";
-        public static final String MALFORMED_JSON = "JSONの構文が不正です";
-        public static final String METHOD_NOT_ALLOWED = "許可されていないHTTPメソッドです";
-        public static final String NOT_ACCEPTABLE = "受理できないメディアタイプです";
-        public static final String TYPE_MISMATCH = "パラメータの型が不正です";
-        public static final String NOT_FOUND = "リソースが見つかりません";
-        public static final String UNEXPECTED_ERROR = "予期しないエラーが発生しました";
+        public static final String VALIDATION_FAILED = MessageAccessor.message("error.validation.failed");
+        public static final String DUPLICATE_RESOURCE = MessageAccessor.message("error.duplicate.resource");
+        public static final String INVALID_PERIOD = MessageAccessor.message("error.period.invalid");
+        public static final String USER_NOT_FOUND = MessageAccessor.message("error.user.notFound");
+        public static final String INVALID_USER_ID = MessageAccessor.message("error.user.invalidId");
+        public static final String MALFORMED_JSON = MessageAccessor.message("error.malformed.json");
+        public static final String METHOD_NOT_ALLOWED = MessageAccessor.message("error.method.notAllowed");
+        public static final String NOT_ACCEPTABLE = MessageAccessor.message("error.notAcceptable");
+        public static final String TYPE_MISMATCH = MessageAccessor.message("error.type.mismatch");
+        public static final String NOT_FOUND = MessageAccessor.message("error.resource.notFound");
+        public static final String UNEXPECTED_ERROR = MessageAccessor.message("error.unexpected");
     }
 
     /**
