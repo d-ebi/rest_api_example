@@ -1,5 +1,6 @@
 package com.example.api.exception;
 
+import com.example.api.openapi.OpenApiExamples;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,7 +20,7 @@ import java.util.List;
 public class ApiErrorResponse {
     @Schema(description = "エラーコード", example = "BAD_REQUEST")
     private String code;
-    @Schema(description = "メッセージ", example = "Validation failed")
+    @Schema(description = "メッセージ", example = "入力内容に誤りがあります")
     private String message;
     @Schema(description = "トレースID", example = "f1c2d3e4-5678-90ab-cdef-1234567890ab")
     private String traceId;

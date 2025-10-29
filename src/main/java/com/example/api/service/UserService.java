@@ -39,8 +39,13 @@ public class UserService {
     public Long create(UserRequest userRequest) {
         validatePeriod(userRequest);
         if (userRepository.existsByName(userRequest.getName())) {
-            FieldErrorDetail err = new FieldErrorDetail("DUPLICATE", "name already exists", "name", Map.of("unique", true));
-            throw new ConflictException("Duplicate resource", List.of(err));
+            FieldErrorDetail err = ErrorCatalog.fieldError(
+                    ErrorCatalog.DetailCodes.DUPLICATE,
+                    ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
+                    "name",
+                    "body",
+                    Map.of("unique", true));
+            throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
         }
         UserEntity userEntity = userMapper.toEntityForCreate(userRequest);
         UserEntity savedUser = userRepository.save(userEntity);
@@ -58,10 +63,16 @@ public class UserService {
     @Transactional
     public void update(Long userId, UserRequest userRequest) {
         validatePeriod(userRequest);
-        UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new BadRequestException("Invalid user_id"));
+        UserEntity userEntity = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException(ErrorCatalog.Messages.INVALID_USER_ID));
         if (userRepository.existsByNameAndIdNot(userRequest.getName(), userId)) {
-            FieldErrorDetail err = new FieldErrorDetail("DUPLICATE", "name already exists", "name", Map.of("unique", true));
-            throw new ConflictException("Duplicate resource", List.of(err));
+            FieldErrorDetail err = ErrorCatalog.fieldError(
+                    ErrorCatalog.DetailCodes.DUPLICATE,
+                    ErrorCatalog.Reasons.NAME_ALREADY_EXISTS,
+                    "name",
+                    "body",
+                    Map.of("unique", true));
+            throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
         }
         userMapper.updateEntity(userEntity, userRequest);
         userRepository.save(userEntity);
@@ -84,7 +95,8 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserResponse get(Long userId) {
-        UserEntity userEntity = userRepository.findWithCareerHistoriesById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        UserEntity userEntity = userRepository.findWithCareerHistoriesById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(ErrorCatalog.Messages.USER_NOT_FOUND));
         return userMapper.toResponse(userEntity);
     }
 
@@ -128,8 +140,14 @@ public class UserService {
             for (CareerHistoryDto careerHistory : userRequest.getCareerHistories()) {
                 if (careerHistory.getPeriod() == null || careerHistory.getPeriod().getFrom() == null || careerHistory.getPeriod().getTo() == null) continue;
                 if (careerHistory.getPeriod().getFrom().isAfter(careerHistory.getPeriod().getTo())) {
-                    FieldErrorDetail err = new FieldErrorDetail("INVALID_PERIOD", "period.from must be on/before period.to", "careerHistories.period", Map.of("from", careerHistory.getPeriod().getFrom().toString(), "to", careerHistory.getPeriod().getTo().toString()));
-                    throw new UnprocessableEntityException("Invalid period", List.of(err));
+                    FieldErrorDetail err = ErrorCatalog.fieldError(
+                            ErrorCatalog.DetailCodes.INVALID_PERIOD,
+                            ErrorCatalog.Reasons.PERIOD_FROM_AFTER_TO,
+                            "careerHistories.period",
+                            "body",
+                            Map.of("from", careerHistory.getPeriod().getFrom().toString(),
+                                    "to", careerHistory.getPeriod().getTo().toString()));
+                    throw new UnprocessableEntityException(ErrorCatalog.Messages.INVALID_PERIOD, List.of(err));
                 }
             }
         }

@@ -15,8 +15,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = NotNumericOnlyValidator.class)
 @Documented
 public @interface NotNumericOnly {
-    String message() default "must contain at least one non-digit";
+    String message() default "{validation.text.notNumeric}";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }
-
