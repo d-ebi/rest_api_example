@@ -1,0 +1,585 @@
+openapi: 3.0.1
+info:
+  title: Users API
+  description: "ユーザー管理REST API (JSON, SQLite)"
+  version: v1
+servers:
+- url: http://localhost:8080
+  description: Local
+paths:
+  /api/v1/users/{user_id}:
+    get:
+      tags:
+      - Users
+      summary: ユーザー取得
+      operationId: get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              example:
+                name: Taro Yamada
+                age: 30
+                birthday: 1994/04/01
+                height: 170.5
+                zipCode: 123-4567
+                careerHistories:
+                - title: Software Engineer
+                  period:
+                    from: 2018/04/01
+                    to: 2021/03/31
+                - title: Senior Engineer
+                  period:
+                    from: 2021/04/01
+                    to: 2024/03/31
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "404":
+          description: 対象なし
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    put:
+      tags:
+      - Users
+      summary: ユーザー更新
+      operationId: update
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+            example:
+              name: Taro Yamada
+              age: 31
+              birthday: 1994/04/01
+              height: 171.0
+              zipCode: 123-4567
+              careerHistories:
+              - title: Senior Engineer
+                period:
+                  from: 2021/04/01
+                  to: 2024/03/31
+        required: true
+      responses:
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "204":
+          description: No Content
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    delete:
+      tags:
+      - Users
+      summary: ユーザー削除
+      operationId: delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "204":
+          description: No Content
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /api/v1/users:
+    get:
+      tags:
+      - Users
+      summary: ユーザー一覧取得
+      operationId: list
+      parameters:
+      - name: name
+        in: query
+        description: 名前の部分一致フィルタ
+        required: false
+        schema:
+          maxLength: 200
+          minLength: 1
+          pattern: .*\D.*
+          type: string
+        example: Tar
+      - name: limit
+        in: query
+        description: 取得件数
+        required: false
+        schema:
+          maximum: 100
+          minimum: 0
+          type: string
+        example: 10
+      - name: offset
+        in: query
+        description: 開始オフセット
+        required: false
+        schema:
+          minimum: 0
+          type: string
+        example: 0
+      responses:
+        "422":
+          description: "処理不能（例: 期間の矛盾）"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+              example:
+                count: 25
+                page:
+                  offset: 0
+                  limit: 10
+                  total: 25
+                  hasNext: true
+                users:
+                - name: Taro Yamada
+                  age: 30
+                  birthday: 1994/04/01
+                  height: 170.5
+                  zipCode: 123-4567
+                  careerHistories:
+                  - title: Software Engineer
+                    period:
+                      from: 2018/04/01
+                      to: 2021/03/31
+        "400":
+          description: 不正なパラメータ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "404":
+          description: 対象なし
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+    post:
+      tags:
+      - Users
+      summary: ユーザー作成
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+            example:
+              name: Taro Yamada
+              age: 30
+              birthday: 1994/04/01
+              height: 170.5
+              zipCode: 123-4567
+              careerHistories:
+              - title: Software Engineer
+                period:
+                  from: 2018/04/01
+                  to: 2021/03/31
+        required: true
+      responses:
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "201":
+          description: Created
+          headers:
+            Location:
+              description: 作成したリソースのURI
+              style: simple
+              schema:
+                type: string
+                example: /api/v1/users/1
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "409":
+          description: 重複（name一意制約）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        "422":
+          description: 処理不能（期間エラーなど）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+components:
+  schemas:
+    CareerHistoryDto:
+      required:
+      - period
+      - title
+      type: object
+      properties:
+        title:
+          maxLength: 200
+          minLength: 1
+          type: string
+          description: 職務タイトル（1〜200文字）
+          example: Software Engineer
+        period:
+          $ref: '#/components/schemas/PeriodDto'
+      description: 職歴情報
+      example:
+        title: Software Engineer
+        period:
+          from: 2018/04/01
+          to: 2021/03/31
+    PeriodDto:
+      required:
+      - from
+      - to
+      type: object
+      properties:
+        from:
+          type: string
+          description: 開始日（yyyy/MM/dd）
+          format: date
+        to:
+          type: string
+          description: 終了日（yyyy/MM/dd）
+          format: date
+      description: 期間情報
+      example:
+        from: 2018/04/01
+        to: 2021/03/31
+    UserRequest:
+      required:
+      - age
+      - birthday
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 200
+          minLength: 1
+          type: string
+          description: 氏名（1〜200文字、数字のみ不可）
+          example: Taro Yamada
+        age:
+          maximum: 150
+          minimum: 0
+          type: integer
+          description: 年齢（0〜150）
+          format: int32
+          example: 30
+        birthday:
+          pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$"
+          type: string
+          description: 生年月日（yyyy/MM/dd）
+          format: date
+        height:
+          maximum: 300.0
+          exclusiveMaximum: false
+          minimum: 0.0
+          exclusiveMinimum: false
+          type: number
+          description: 身長（整数3桁・小数1桁、0.0〜300.0）
+          format: double
+          example: 170.5
+        zipCode:
+          maxLength: 8
+          minLength: 8
+          pattern: "\\d{3}-\\d{4}"
+          type: string
+          description: 郵便番号（000-0000形式）
+          example: 123-4567
+        careerHistories:
+          maxItems: 50
+          minItems: 1
+          type: array
+          description: 職歴（最大50件）
+          items:
+            $ref: '#/components/schemas/CareerHistoryDto'
+      description: ユーザー作成/更新のリクエスト
+      example:
+        name: Taro Yamada
+        age: 30
+        birthday: 1994/04/01
+        height: 170.5
+        zipCode: 123-4567
+        careerHistories:
+        - title: Software Engineer
+          period:
+            from: 2018/04/01
+            to: 2021/03/31
+    ApiErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          description: エラーコード
+          example: BAD_REQUEST
+        message:
+          type: string
+          description: メッセージ
+          example: Validation failed
+        traceId:
+          type: string
+          description: トレースID
+          example: f1c2d3e4-5678-90ab-cdef-1234567890ab
+        errors:
+          type: array
+          description: 詳細エラー一覧
+          items:
+            $ref: '#/components/schemas/FieldErrorDetail'
+      description: 共通エラーレスポンスフォーマット
+    FieldErrorDetail:
+      type: object
+      properties:
+        code:
+          type: string
+          description: 詳細エラーコード
+          example: VALIDATION_ERROR
+        reson:
+          type: string
+          description: 理由（要求仕様に合わせキー名はreson）
+          example: must not be blank
+        field:
+          type: string
+          description: 対象フィールド
+          example: name
+        constraints:
+          type: object
+          description: 制約情報（任意、構造は実装依存）
+          example:
+            min: 1
+            max: 200
+      description: バリデーション等の詳細エラー
+    PageMeta:
+      type: object
+      properties:
+        offset:
+          minimum: 0
+          type: integer
+          description: オフセット
+          format: int32
+          example: 0
+        limit:
+          minimum: 0
+          type: integer
+          description: 取得件数
+          format: int32
+          example: 10
+        total:
+          minimum: 0
+          type: integer
+          description: 総件数（ページング前）
+          format: int32
+          example: 25
+        hasNext:
+          type: boolean
+          description: 次のページが存在するか
+          example: true
+      description: ページング情報
+      example:
+        offset: 0
+        limit: 10
+        total: 25
+        hasNext: true
+    UserListResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: 総件数（ページング前）
+          format: int32
+          example: 25
+        page:
+          $ref: '#/components/schemas/PageMeta'
+        users:
+          type: array
+          description: ユーザー一覧
+          items:
+            $ref: '#/components/schemas/UserResponse'
+      description: ユーザー一覧レスポンス
+      example:
+        count: 25
+        page:
+          offset: 0
+          limit: 10
+          total: 25
+          hasNext: true
+        users:
+        - name: Taro Yamada
+          age: 30
+          birthday: 1994/04/01
+          height: 170.5
+          zipCode: 123-4567
+          careerHistories:
+          - title: Software Engineer
+            period:
+              from: 2018/04/01
+              to: 2021/03/31
+    UserResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 氏名
+          example: Taro Yamada
+        age:
+          type: integer
+          description: 年齢
+          format: int32
+          example: 30
+        birthday:
+          type: string
+          description: 生年月日（yyyy/MM/dd）
+          format: date
+        height:
+          type: number
+          description: 身長
+          example: 170.5
+        zipCode:
+          type: string
+          description: 郵便番号
+          example: 123-4567
+        careerHistories:
+          type: array
+          description: 職歴
+          items:
+            $ref: '#/components/schemas/CareerHistoryDto'
+      description: ユーザー取得レスポンス
+      example:
+        name: Taro Yamada
+        age: 30
+        birthday: 1994/04/01
+        height: 170.5
+        zipCode: 123-4567
+        careerHistories:
+        - title: Software Engineer
+          period:
+            from: 2018/04/01
+            to: 2021/03/31
+        - title: Senior Engineer
+          period:
+            from: 2021/04/01
+            to: 2024/03/31
