@@ -458,9 +458,9 @@ components:
           type: string
           description: 詳細エラーコード
           example: VALIDATION_ERROR
-        reson:
+        reason:
           type: string
-          description: 理由（要求仕様に合わせキー名はreson）
+          description: 理由
           example: must not be blank
         field:
           type: string

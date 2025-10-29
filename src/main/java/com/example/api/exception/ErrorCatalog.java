@@ -78,7 +78,7 @@ public final class ErrorCatalog {
     }
 
     /**
-     * 詳細エラーの理由（FieldErrorDetail.resonに設定する値）。
+     * 詳細エラーの理由（FieldErrorDetail.reasonに設定する値）。
      */
     public static final class Reasons {
         private Reasons() {

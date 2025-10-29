@@ -27,7 +27,7 @@
   "traceId": "string",
   "errors": [
     "code": "string",
-    "reson": "string",
+    "reason": "string",
     "field": "string",
     "constraints": "object"
   ]
