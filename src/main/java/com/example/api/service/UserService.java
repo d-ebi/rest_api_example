@@ -49,6 +49,9 @@ public class UserService {
             throw new ConflictException(ErrorCatalog.Messages.DUPLICATE_RESOURCE, List.of(err));
         }
         UserEntity userEntity = userMapper.toEntityForCreate(userRequest);
+        if (userEntity.getCareerHistories() != null) {
+            userEntity.getCareerHistories().forEach(ch -> ch.setUser(userEntity));
+        }
         UserEntity savedUser = userRepository.save(userEntity);
         return savedUser.getId();
     }
