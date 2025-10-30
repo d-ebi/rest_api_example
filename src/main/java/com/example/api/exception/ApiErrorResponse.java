@@ -27,14 +27,30 @@ public class ApiErrorResponse {
     @ArraySchema(arraySchema = @Schema(description = "詳細エラー一覧"), schema = @Schema(implementation = FieldErrorDetail.class))
     private List<FieldErrorDetail> errors;
 
+    /** デフォルトコンストラクタ（シリアライザ向け）。 */
     public ApiErrorResponse() {}
 
+    /**
+     * 詳細エラーなしのレスポンスを生成します。
+     *
+     * @param code    エラーコード
+     * @param message メッセージ
+     * @param traceId トレースID
+     */
     public ApiErrorResponse(String code, String message, String traceId) {
         this.code = code;
         this.message = message;
         this.traceId = traceId;
     }
 
+    /**
+     * 詳細エラー付きレスポンスを生成します。
+     *
+     * @param code    エラーコード
+     * @param message メッセージ
+     * @param traceId トレースID
+     * @param errors  詳細エラー一覧
+     */
     public ApiErrorResponse(String code, String message, String traceId, List<FieldErrorDetail> errors) {
         this.code = code;
         this.message = message;

@@ -45,9 +45,6 @@ public interface UserMapStructMapper {
     }
 
     /**
-     * 更新用にDTOの内容をエンティティへ反映します。
-     */
-    /**
      * エンティティからレスポンスDTOへ変換します。
      */
     @Mapping(target = "id", source = "id")
