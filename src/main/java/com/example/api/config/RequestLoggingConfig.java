@@ -15,14 +15,25 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Configuration
 public class RequestLoggingConfig implements WebMvcConfigurer {
+    /**
+     * リクエスト監視用インターセプタをMVCへ登録します。
+     *
+     * @param registry インターセプタレジストリ
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new RequestLoggingInterceptor());
     }
 
+    /**
+     * リクエスト開始／終了をINFOレベルで出力するインターセプタ。
+     */
     static class RequestLoggingInterceptor implements HandlerInterceptor {
         private static final Logger log = LoggerFactory.getLogger(RequestLoggingInterceptor.class);
 
+        /**
+         * ハンドラ実行前にメソッド・URI・クエリを記録します。
+         */
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
             String method = request.getMethod();
@@ -32,6 +43,9 @@ public class RequestLoggingConfig implements WebMvcConfigurer {
             return true;
         }
 
+        /**
+         * ハンドラ完了後にステータスと例外の有無を出力します。
+         */
         @Override
         public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
             int status = response.getStatus();
@@ -42,4 +56,3 @@ public class RequestLoggingConfig implements WebMvcConfigurer {
         }
     }
 }
-

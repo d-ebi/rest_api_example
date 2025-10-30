@@ -175,6 +175,12 @@ public class UserService {
         }
     }
 
+    /**
+     * 更新リクエストの期間整合性を検証します。
+     *
+     * @param userEntity 現在のユーザーエンティティ
+     * @param userRequest 更新内容
+     */
     private void validatePeriod(UserEntity userEntity, UserUpdateRequest userRequest) {
         if (userRequest.getCareerHistories() == null) return;
         Map<Long, CareerHistoryEntity> existing = userEntity.getCareerHistories() == null
@@ -208,6 +214,12 @@ public class UserService {
         }
     }
 
+    /**
+     * 更新DTOの内容で職歴エンティティ一覧を差分更新します。
+     *
+     * @param userEntity 対象ユーザー
+     * @param updates    更新リクエスト
+     */
     private void updateCareerHistories(UserEntity userEntity, List<CareerHistoryUpdateDto> updates) {
         List<CareerHistoryEntity> current = userEntity.getCareerHistories() == null
                 ? new ArrayList<>()
@@ -260,16 +272,25 @@ public class UserService {
         userEntity.setCareerHistories(current);
     }
 
+    /**
+     * 身長を小数第1位で四捨五入しDoubleへ変換します。
+     */
     private Double roundHeight(BigDecimal height) {
         if (height == null) return null;
         return height.setScale(1, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
+    /**
+     * yyyy/MM/dd 文字列をLocalDateへ変換します。
+     */
     private LocalDate parseDate(String value) {
         if (value == null) return null;
         return LocalDate.parse(value, UserMapStructMapper.F);
     }
 
+    /**
+     * マッパーの現在時刻フォーマッタを利用して現在時刻文字列を取得します。
+     */
     private String now() {
         return userMapper.now();
     }

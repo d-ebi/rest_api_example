@@ -25,8 +25,18 @@ public class FieldErrorDetail {
     @Schema(description = "制約情報（任意、構造は実装依存）", example = OpenApiExamples.Errors.DETAIL_CONSTRAINTS)
     private Object constraints;
 
+    /** デフォルトコンストラクタ（シリアライザ向け）。 */
     public FieldErrorDetail() {}
 
+    /**
+     * 詳細エラーを生成します。
+     *
+     * @param code        詳細エラーコード
+     * @param reason      理由
+     * @param field       対象フィールド
+     * @param location    エラー発生箇所
+     * @param constraints 制約情報
+     */
     public FieldErrorDetail(String code, String reason, String field, String location, Object constraints) {
         this.code = code;
         this.reason = reason;

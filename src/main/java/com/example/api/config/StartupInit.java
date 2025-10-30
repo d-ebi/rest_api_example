@@ -12,6 +12,9 @@ import java.nio.file.Path;
  */
 @Component
 public class StartupInit {
+    /**
+     * アプリケーションコンテキスト初期化時にデータディレクトリ（./data）を確保します。
+     */
     @EventListener(ContextRefreshedEvent.class)
     public void ensureDataDir() {
         try {

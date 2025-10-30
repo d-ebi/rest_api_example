@@ -41,11 +41,23 @@ public class SQLiteDialect extends Dialect {
         registerFunction("concat", new SQLFunctionTemplate(StandardBasicTypes.STRING, "(?1 || ?2)"));
     }
 
+    /** {@inheritDoc} */
     public boolean supportsIdentityColumns() { return true; }
+    /** {@inheritDoc} */
     public boolean hasDataTypeInIdentityColumn() { return false; }
+    /** {@inheritDoc} */
     public String getIdentityColumnString() { return "integer"; }
+    /** {@inheritDoc} */
     public String getIdentitySelectString() { return "select last_insert_rowid()"; }
+    /** {@inheritDoc} */
     public boolean supportsLimit() { return true; }
+    /**
+     * SQLite用にLIMIT句（必要に応じてOFFSETを含む）を構築します。
+     *
+     * @param query     元のSQL
+     * @param hasOffset OFFSET指定が必要かどうか
+     * @return LIMIT付きクエリ
+     */
     public String getLimitString(String query, boolean hasOffset) {
         return query + (hasOffset ? " limit ? offset ?" : " limit ?");
     }
