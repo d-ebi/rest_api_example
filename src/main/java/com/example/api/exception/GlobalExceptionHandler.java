@@ -23,10 +23,17 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.validation.FieldError;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ElementKind;
+import javax.validation.constraints.Digits;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import javax.validation.metadata.ConstraintDescriptor;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -66,7 +73,7 @@ public class GlobalExceptionHandler {
                         err.getDefaultMessage(),
                         err.getField(),
                         LOCATION_BODY,
-                        null))
+                        extractConstraints(err)))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForFieldErrors(ex.getBindingResult().getFieldErrors());
         String message = status == HttpStatus.BAD_REQUEST
@@ -85,7 +92,7 @@ public class GlobalExceptionHandler {
                         v.getMessage(),
                         v.getPropertyPath() != null ? v.getPropertyPath().toString() : null,
                         resolveLocationForViolation(v),
-                        null))
+                        extractConstraints(v)))
                 .collect(Collectors.toList());
         HttpStatus status = resolveStatusForViolations(violations);
         String message = status == HttpStatus.BAD_REQUEST
@@ -192,6 +199,52 @@ public class GlobalExceptionHandler {
         logByStatus("Unexpected error", ex, status);
         String message = resolveMessageFromAnnotation(ex, status);
         return response(status, message);
+    }
+
+    private Map<String, Object> extractConstraints(FieldError error) {
+        if (error == null) {
+            return null;
+        }
+        try {
+            ConstraintViolation<?> violation = error.unwrap(ConstraintViolation.class);
+            return extractConstraints(violation);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private Map<String, Object> extractConstraints(ConstraintViolation<?> violation) {
+        if (violation == null) {
+            return null;
+        }
+        ConstraintDescriptor<?> descriptor = violation.getConstraintDescriptor();
+        if (descriptor == null || descriptor.getAnnotation() == null) {
+            return null;
+        }
+        Class<?> annotationType = descriptor.getAnnotation().annotationType();
+        Map<String, Object> attributes = descriptor.getAttributes();
+        if (Min.class.equals(annotationType)) {
+            return Map.of("min", attributes.get("value"));
+        }
+        if (Max.class.equals(annotationType)) {
+            return Map.of("max", attributes.get("value"));
+        }
+        if (Digits.class.equals(annotationType)) {
+            return Map.of(
+                    "integer", attributes.get("integer"),
+                    "fraction", attributes.get("fraction"));
+        }
+        if (Size.class.equals(annotationType)) {
+            return Map.of(
+                    "min", attributes.get("min"),
+                    "max", attributes.get("max"));
+        }
+        if (Pattern.class.equals(annotationType)) {
+            return Map.of(
+                    "pattern", attributes.get("regexp"),
+                    "flags", attributes.get("flags"));
+        }
+        return null;
     }
 
     private HttpStatus resolveStatusFromAnnotation(Exception ex) {

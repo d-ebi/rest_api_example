@@ -4,6 +4,8 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.dialect.identity.IdentityColumnSupport;
+import org.hibernate.dialect.identity.IdentityColumnSupportImpl;
 
 import java.sql.Types;
 
@@ -41,15 +43,13 @@ public class SQLiteDialect extends Dialect {
         registerFunction("concat", new SQLFunctionTemplate(StandardBasicTypes.STRING, "(?1 || ?2)"));
     }
 
-    /** {@inheritDoc} */
-    public boolean supportsIdentityColumns() { return true; }
-    /** {@inheritDoc} */
-    public boolean hasDataTypeInIdentityColumn() { return false; }
-    /** {@inheritDoc} */
-    public String getIdentityColumnString() { return "integer"; }
-    /** {@inheritDoc} */
-    public String getIdentitySelectString() { return "select last_insert_rowid()"; }
-    /** {@inheritDoc} */
+    /** SQLite専用のIDENTITYサポートを返します。 */
+    @Override
+    public IdentityColumnSupport getIdentityColumnSupport() {
+        return SQLiteIdentityColumnSupport.INSTANCE;
+    }
+    /** LIMIT句をサポートするためtrueを返します。 */
+    @Override
     public boolean supportsLimit() { return true; }
     /**
      * SQLite用にLIMIT句（必要に応じてOFFSETを含む）を構築します。
@@ -60,5 +60,29 @@ public class SQLiteDialect extends Dialect {
      */
     public String getLimitString(String query, boolean hasOffset) {
         return query + (hasOffset ? " limit ? offset ?" : " limit ?");
+    }
+
+    private static final class SQLiteIdentityColumnSupport extends IdentityColumnSupportImpl {
+        private static final SQLiteIdentityColumnSupport INSTANCE = new SQLiteIdentityColumnSupport();
+
+        @Override
+        public boolean supportsIdentityColumns() {
+            return true;
+        }
+
+        @Override
+        public boolean hasDataTypeInIdentityColumn() {
+            return false;
+        }
+
+        @Override
+        public String getIdentityColumnString(int type) {
+            return "integer";
+        }
+
+        @Override
+        public String getIdentitySelectString(String table, String column, int type) {
+            return "select last_insert_rowid()";
+        }
     }
 }
