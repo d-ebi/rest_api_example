@@ -182,3 +182,16 @@ OpenAPI 定義 (`target/api-docs.yml`) を用いたプロパティベーステ�
    ```
 
 必要に応じて `schemathesis.toml` や `schemathesis_hooks.py` を編集し、テスト範囲やログ出力を調整してください。
+
+## Allureレポートのローカル確認方法
+
+1. JUnitテスト実行およびAllureレポートの出力
+   ```bash
+   mvn clean verify
+   ```
+
+2. Pythonで簡易HTTPサーバを立てhttp://localhost:30080 で確認
+
+   ```bash
+  python3 -m http.server 38080 --directory ./target/site/allure-maven-plugin/
+   ```
