@@ -1,6 +1,8 @@
-.project
 .classpath
+.hypothesis
+.project
 .settings
 .vscode
+__pycache__
 data
 target

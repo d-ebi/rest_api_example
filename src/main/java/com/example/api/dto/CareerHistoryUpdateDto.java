@@ -12,9 +12,9 @@ public class CareerHistoryUpdateDto {
     @Schema(description = "職歴ID", example = "1")
     private Long id;
 
-    @Schema(description = "職務タイトル", example = "Senior Engineer")
+    @Schema(description = "職務タイトル", example = "Senior Engineer", minLength = 1, maxLength = 200, pattern = ".*\\D.*")
     private String title;
 
-    @Schema(description = "従事期間")
+    @Schema(description = "従事期間", implementation = PeriodUpdateDto.class)
     private PeriodUpdateDto period;
 }

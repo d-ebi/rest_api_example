@@ -1,0 +1,15 @@
+base-url = "http://localhost:8080"
+hooks = "schemathesis_hooks"
+
+[generation]
+max-examples = 50
+database = "none"
+
+[checks]
+enabled = true
+
+[checks.positive_data_acceptance]
+enabled = false
+
+[checks.negative_data_rejection]
+enabled = false

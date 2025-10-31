@@ -20,13 +20,13 @@ public class PeriodDto {
     @NotNull(message = "{period.from.required}")
     @JsonFormat(pattern = "yyyy/MM/dd")
     @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "{period.from.range}")
-    @Schema(description = "開始日（yyyy/MM/dd）", example = OpenApiExamples.Period.FROM, required = true)
+    @Schema(description = "開始日（yyyy/MM/dd）", example = OpenApiExamples.Period.FROM, required = true, pattern = "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$", format = "yyyy/MM/dd", implementation = String.class)
     private LocalDate from;
 
     /** 期間の終了日（必須・yyyy/MM/dd）。 */
     @NotNull(message = "{period.to.required}")
     @JsonFormat(pattern = "yyyy/MM/dd")
     @DateInRange(min = "1900/01/01", max = "2099/12/31", message = "{period.to.range}")
-    @Schema(description = "終了日（yyyy/MM/dd）", example = OpenApiExamples.Period.TO, required = true)
+    @Schema(description = "終了日（yyyy/MM/dd）", example = OpenApiExamples.Period.TO, required = true, pattern = "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$", format = "yyyy/MM/dd", implementation = String.class)
     private LocalDate to;
 }
