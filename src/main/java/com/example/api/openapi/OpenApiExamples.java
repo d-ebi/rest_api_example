@@ -225,7 +225,8 @@ public final class OpenApiExamples {
                       "location": "body",
                       "field": "careerHistories.period",
                       "constraints": {
-                        "invalidPeriod": true
+                        "from": "2024-01-01",
+                        "to": "2023-01-01"
                       }
                     }
                   ]

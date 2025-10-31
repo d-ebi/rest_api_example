@@ -36,7 +36,7 @@ public interface UserMapStructMapper {
      * 子エンティティへ親参照を付与します。
      */
     @AfterMapping
-    default void backReference(@MappingTarget UserEntity userEntity) {
+    default void backReference(UserCreateRequest userRequest, @MappingTarget UserEntity userEntity) {
         if (userEntity.getCareerHistories() != null) {
             for (CareerHistoryEntity careerHistoryEntity : userEntity.getCareerHistories()) {
                 careerHistoryEntity.setUser(userEntity);

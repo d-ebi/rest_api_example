@@ -46,6 +46,28 @@ mvn spring-boot:run -Dspring-boot.run.profiles=structured
 
 http://localhost:8080/swagger-ui.html
 
+## Dreddによる契約テスト
+
+Spring Boot が生成する OpenAPI 3.0 ドキュメントは Dredd が未対応のメタ情報を含むため、Dredd 実行時に警告が表示されていました。`dredd/api-docs-dredd.yml` には Dredd 向けに不要な属性を除いたサニタイズ済みの OpenAPI を用意しています。以下の手順で警告無しに契約テストを実行できます。
+
+```
+# SQLite を初期化
+rm -f data/app.db
+sqlite3 data/app.db "PRAGMA user_version = 1;"
+
+# Spring Boot をバックグラウンド起動
+mvn spring-boot:run > spring.log 2>&1 & SERVER_PID=$!
+
+# Dredd を実行（Node.js の内部警告も抑止）
+NODE_NO_WARNINGS=1 dredd dredd/api-docs-dredd.yml http://localhost:8080/ \
+  --hookfiles=hooks.js --no-color
+
+# テスト完了後にアプリを停止
+kill $SERVER_PID
+```
+
+実行結果は `dredd.log` などにリダイレクトすることで保存できます。
+
 ## jar起動
 起動時は以下のように起動することで、構造化ログの出力有無、Swagger UIの提供有無を切り替えられます。
 

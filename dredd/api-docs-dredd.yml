@@ -1,0 +1,133 @@
+openapi: 3.0.0
+info:
+  title: Users API (Dredd)
+  version: v1
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/users:
+    get:
+      summary: List users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                count: 25
+                page:
+                  offset: 0
+                  limit: 10
+                  total: 25
+                  hasNext: true
+                users:
+                  - id: 1
+                    name: Taro Yamada
+                    age: 30
+                    birthday: '1994/04/01'
+                    height: 170.5
+                    zipCode: '123-4567'
+                    careerHistories:
+                      - id: 1
+                        title: Software Engineer
+                        period:
+                          from: '2018/04/01'
+                          to: '2021/03/31'
+    post:
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: Taro Yamada
+              age: 30
+              birthday: '1994/04/01'
+              height: 170.5
+              zipCode: '123-4567'
+              careerHistories:
+                - title: Software Engineer
+                  period:
+                    from: '2018/04/01'
+                    to: '2021/03/31'
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: Duplicate name
+          content:
+            application/json:
+              example:
+                code: CONFLICT
+                message: リソースが重複しています
+                errors:
+                  - code: DUPLICATE
+                    reason: nameは既に存在しています
+                    field: name
+                    location: body
+                    constraints:
+                      unique: true
+        '422':
+          description: Invalid period
+          content:
+            application/json:
+              example:
+                code: UNPROCESSABLE_ENTITY
+                message: リクエスト内容に不備があります
+                errors:
+                  - code: INVALID_PERIOD
+                    reason: period.fromはperiod.to以前の日付を指定してください
+                    field: careerHistories.period
+                    location: body
+                    constraints:
+                      from: '2024-01-01'
+                      to: '2023-01-01'
+  /api/v1/users/{user_id}:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        example: 1
+        schema:
+          type: integer
+    get:
+      summary: Get user
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                id: 1
+                name: Taro Yamada
+                age: 30
+                birthday: '1994/04/01'
+                height: 170.5
+                zipCode: '123-4567'
+                careerHistories:
+                  - id: 1
+                    title: Software Engineer
+                    period:
+                      from: '2018/04/01'
+                      to: '2021/03/31'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              example:
+                code: NOT_FOUND
+                message: ユーザーが見つかりません
+    put:
+      summary: Update user name
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: Updated User
+      responses:
+        '204':
+          description: No Content
+    delete:
+      summary: Delete user
+      responses:
+        '204':
+          description: No Content
