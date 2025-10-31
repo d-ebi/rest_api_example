@@ -1,0 +1,10 @@
+pass: GET (200) /api/v1/users duration: 340ms
+pass: POST (201) /api/v1/users duration: 151ms
+pass: POST (409) /api/v1/users duration: 31ms
+pass: POST (422) /api/v1/users duration: 15ms
+pass: GET (200) /api/v1/users/1 duration: 26ms
+pass: GET (404) /api/v1/users/1 duration: 14ms
+pass: PUT (204) /api/v1/users/1 duration: 37ms
+pass: DELETE (204) /api/v1/users/1 duration: 29ms
+complete: 8 passing, 0 failing, 0 errors, 0 skipped, 8 total
+complete: Tests took 854ms
