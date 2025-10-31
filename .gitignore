@@ -5,5 +5,7 @@
 .settings
 .vscode
 __pycache__
+allure-results
 data
+m2_repo
 target
