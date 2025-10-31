@@ -284,6 +284,73 @@ class UserServiceTest {
 
             verify(userRepository, never()).save(any());
         }
+
+        @Test
+        @Story("既存職歴の日付を更新した結果が逆転してしまう")
+        @DisplayName("期間の整合性が崩れた場合は加工できないエラーを送出する")
+        @Tag("種別:異常系")
+        @Tag("観点:整合性チェック")
+        void throwUnprocessableWhenUpdatedPeriodInvalid() {
+            Long userId = 1L;
+            CareerHistoryEntity history = CareerHistoryEntity.builder()
+                    .id(5L)
+                    .title("既存職歴")
+                    .periodFrom("2015/04/01")
+                    .periodTo("2018/03/31")
+                    .build();
+            UserEntity existing = UserEntity.builder()
+                    .id(userId)
+                    .careerHistories(new ArrayList<>(List.of(history)))
+                    .build();
+            history.setUser(existing);
+
+            UserUpdateRequest request = new UserUpdateRequest();
+            request.setCareerHistories(List.of(
+                    careerHistoryUpdateDto(5L, "既存職歴", LocalDate.of(2019, 4, 1), LocalDate.of(2018, 3, 31))
+            ));
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(existing));
+
+            assertThrows(UnprocessableEntityException.class, () -> userService.update(userId, request));
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @Story("新しい職歴を追加する")
+        @DisplayName("必須項目が揃った新規職歴はユーザーに追加される")
+        @Tag("種別:正常系")
+        @Tag("観点:入力チェック")
+        void addNewCareerHistoryWhenFieldsComplete() {
+            Long userId = 1L;
+            UserEntity existing = UserEntity.builder()
+                    .id(userId)
+                    .careerHistories(null)
+                    .build();
+
+            CareerHistoryUpdateDto newCareer = careerHistoryUpdateDto(
+                    null,
+                    "新規職歴",
+                    LocalDate.of(2020, 4, 1),
+                    LocalDate.of(2022, 3, 31)
+            );
+            UserUpdateRequest request = new UserUpdateRequest();
+            request.setCareerHistories(List.of(newCareer));
+
+            when(userRepository.findById(userId)).thenReturn(Optional.of(existing));
+            when(userMapper.now()).thenReturn("2024-06-01 12:34:56");
+
+            userService.update(userId, request);
+
+            assertNotNull(existing.getCareerHistories());
+            assertEquals(1, existing.getCareerHistories().size());
+            CareerHistoryEntity created = existing.getCareerHistories().get(0);
+            assertEquals("新規職歴", created.getTitle());
+            assertEquals("2020/04/01", created.getPeriodFrom());
+            assertEquals("2022/03/31", created.getPeriodTo());
+            assertSame(existing, created.getUser());
+            verify(userRepository).save(existing);
+        }
     }
 
     @Nested
@@ -415,6 +482,40 @@ class UserServiceTest {
             assertEquals(2L, actual.get(0).getId());
             assertEquals(3L, actual.get(1).getId());
             verify(userMapper, times(2)).toResponse(any());
+        }
+
+        @Test
+        @Story("制限値付きでページング条件を指定する")
+        @DisplayName("limitとoffsetから適切なページ条件を算出して一覧を返す")
+        @Tag("種別:正常系")
+        @Tag("観点:ページング")
+        void listUsesComputedPageWhenLimitPositive() {
+            UserEntity secondPageFirst = UserEntity.builder().id(4L).name("D").build();
+            UserEntity secondPageSecond = UserEntity.builder().id(5L).name("E").build();
+            UserEntity secondPageThird = UserEntity.builder().id(6L).name("F").build();
+
+            when(userRepository.findAll(Mockito.<Specification<UserEntity>>any(), any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(secondPageFirst, secondPageSecond, secondPageThird)));
+            when(userMapper.toResponse(any(UserEntity.class))).thenAnswer(invocation -> {
+                UserEntity entity = invocation.getArgument(0);
+                return UserResponse.builder()
+                        .id(entity.getId())
+                        .name(entity.getName())
+                        .build();
+            });
+
+            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+
+            List<UserResponse> actual = userService.list("田", 3, 6);
+
+            verify(userRepository).findAll(Mockito.<Specification<UserEntity>>any(), pageableCaptor.capture());
+            Pageable pageable = pageableCaptor.getValue();
+            assertEquals(2, pageable.getPageNumber());
+            assertEquals(3, pageable.getPageSize());
+            assertEquals(3, actual.size());
+            assertEquals(4L, actual.get(0).getId());
+            assertEquals(6L, actual.get(2).getId());
+            verify(userMapper, times(3)).toResponse(any());
         }
     }
 }
