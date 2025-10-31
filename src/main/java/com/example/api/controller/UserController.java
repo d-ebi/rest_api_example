@@ -180,6 +180,10 @@ public class UserController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
                             examples = @ExampleObject(name = "NotAcceptable", value = OpenApiExamples.ErrorResponses.NOT_ACCEPTABLE))),
+            @ApiResponse(responseCode = "422", description = "処理不能（検証エラー）",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(name = "UnprocessableEntity", value = OpenApiExamples.ErrorResponses.UNPROCESSABLE_ENTITY))),
             @ApiResponse(responseCode = "500", description = "サーバエラー",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
@@ -191,6 +195,7 @@ public class UserController {
                     examples = @ExampleObject(value = OpenApiExamples.Requests.USER_UPDATE)))
     public ResponseEntity<Void> update(
             @Parameter(description = "ユーザーID", example = OpenApiExamples.Users.ID)
+            @Min(1)
             @PathVariable("user_id") Long userId,
             @RequestBody UserUpdateRequest userRequest) {
         userService.update(userId, userRequest);
@@ -218,6 +223,10 @@ public class UserController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
                             examples = @ExampleObject(name = "NotAcceptable", value = OpenApiExamples.ErrorResponses.NOT_ACCEPTABLE))),
+            @ApiResponse(responseCode = "422", description = "処理不能（検証エラー）",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(name = "UnprocessableEntity", value = OpenApiExamples.ErrorResponses.UNPROCESSABLE_ENTITY))),
             @ApiResponse(responseCode = "500", description = "サーバエラー",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
@@ -225,6 +234,7 @@ public class UserController {
     })
     public ResponseEntity<Void> delete(
             @Parameter(description = "ユーザーID", example = OpenApiExamples.Users.ID)
+            @Min(1)
             @PathVariable("user_id") Long userId) {
         userService.delete(userId);
         return ResponseEntity.noContent().build();
@@ -258,6 +268,10 @@ public class UserController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
                             examples = @ExampleObject(name = "NotAcceptable", value = OpenApiExamples.ErrorResponses.NOT_ACCEPTABLE))),
+            @ApiResponse(responseCode = "422", description = "処理不能（検証エラー）",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ApiErrorResponse.class),
+                            examples = @ExampleObject(name = "UnprocessableEntity", value = OpenApiExamples.ErrorResponses.UNPROCESSABLE_ENTITY))),
             @ApiResponse(responseCode = "500", description = "サーバエラー",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiErrorResponse.class),
@@ -265,6 +279,7 @@ public class UserController {
     })
     public ResponseEntity<UserResponse> get(
             @Parameter(description = "ユーザーID", example = OpenApiExamples.Users.ID)
+            @Min(1)
             @PathVariable("user_id") Long userId) {
         UserResponse userResponse = userService.get(userId);
         return ResponseEntity.ok(userResponse);

@@ -109,6 +109,9 @@ public class UserService {
      */
     @Transactional
     public void delete(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            return;
+        }
         userRepository.deleteById(userId);
     }
 
@@ -224,13 +227,13 @@ public class UserService {
      * @param updates    更新リクエスト
      */
     private void updateCareerHistories(UserEntity userEntity, List<CareerHistoryUpdateDto> updates) {
-        List<CareerHistoryEntity> current = userEntity.getCareerHistories() == null
-                ? new ArrayList<>()
-                : new ArrayList<>(userEntity.getCareerHistories());
+        List<CareerHistoryEntity> current = userEntity.getCareerHistories();
+        List<CareerHistoryEntity> snapshot = current == null ? new ArrayList<>() : new ArrayList<>(current);
 
-        Map<Long, CareerHistoryEntity> existing = current.stream()
+        Map<Long, CareerHistoryEntity> existing = snapshot.stream()
                 .filter(entity -> entity.getId() != null)
                 .collect(Collectors.toMap(CareerHistoryEntity::getId, entity -> entity));
+        List<CareerHistoryEntity> updated = new ArrayList<>();
 
         for (CareerHistoryUpdateDto dto : updates) {
             CareerHistoryEntity entity = null;
@@ -239,8 +242,6 @@ public class UserService {
             }
             if (entity == null) {
                 entity = new CareerHistoryEntity();
-                entity.setUser(userEntity);
-                current.add(entity);
             }
 
             if (dto.getTitle() != null) {
@@ -270,9 +271,17 @@ public class UserService {
                     throw new UnprocessableEntityException(ErrorCatalog.Messages.UNPROCESSABLE_TOP, List.of(err));
                 }
             }
+            updated.add(entity);
         }
 
-        userEntity.setCareerHistories(current);
+        if (current == null) {
+            updated.forEach(item -> item.setUser(userEntity));
+            userEntity.setCareerHistories(updated);
+        } else {
+            current.clear();
+            updated.forEach(item -> item.setUser(userEntity));
+            current.addAll(updated);
+        }
     }
 
     /**

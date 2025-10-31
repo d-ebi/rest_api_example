@@ -16,11 +16,61 @@ paths:
       parameters:
       - name: user_id
         in: path
+        description: ユーザーID
         required: true
         schema:
+          minimum: 1
           type: integer
           format: int64
+        example: 1
       responses:
+        "406":
+          description: Not Acceptable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                NotAcceptable:
+                  description: NotAcceptable
+                  value:
+                    code: NOT_ACCEPTABLE
+                    message: 受理できないメディアタイプです
+                    traceId: eeeeeeee-ffff-0000-1111-222222222222
+        "422":
+          description: 処理不能（検証エラー）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                UnprocessableEntity:
+                  description: UnprocessableEntity
+                  value:
+                    code: UNPROCESSABLE_ENTITY
+                    message: リクエスト内容に不備があります
+                    traceId: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                    errors:
+                    - code: INVALID_PERIOD
+                      reason: period.fromはperiod.to以前の日付を指定してください
+                      location: body
+                      field: careerHistories.period
+                      constraints:
+                        from: 2024-01-01
+                        to: 2023-01-01
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                InternalServerError:
+                  description: InternalServerError
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: 予期しないエラーが発生しました
+                    traceId: 99999999-aaaa-bbbb-cccc-dddddddddddd
         "200":
           description: OK
           content:
@@ -28,17 +78,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserResponse'
               example:
+                id: 1
                 name: Taro Yamada
                 age: 30
                 birthday: 1994/04/01
                 height: 170.5
                 zipCode: 123-4567
                 careerHistories:
-                - title: Software Engineer
+                - id: 1
+                  title: Software Engineer
                   period:
                     from: 2018/04/01
                     to: 2021/03/31
-                - title: Senior Engineer
+                - id: 2
+                  title: Senior Engineer
                   period:
                     from: 2021/04/01
                     to: 2024/03/31
@@ -48,30 +101,47 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
-        "406":
-          description: Not Acceptable
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
-        "500":
-          description: サーバエラー
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                MethodNotAllowed:
+                  description: MethodNotAllowed
+                  value:
+                    code: METHOD_NOT_ALLOWED
+                    message: 許可されていないHTTPメソッドです
+                    traceId: dddddddd-eeee-ffff-0000-111111111111
         "400":
           description: 不正なリクエスト
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                BadRequest:
+                  description: BadRequest
+                  value:
+                    code: BAD_REQUEST
+                    message: 入力内容に誤りがあります
+                    traceId: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+                    errors:
+                    - code: VALIDATION_ERROR
+                      reason: limitは0〜100の範囲で指定してください
+                      location: query
+                      field: limit
+                      constraints:
+                        invalidValue: "-1"
+                        expectedType: Integer
         "404":
           description: 対象なし
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                NotFound:
+                  description: NotFound
+                  value:
+                    code: NOT_FOUND
+                    message: リソースが見つかりません
+                    traceId: cccccccc-dddd-eeee-ffff-000000000000
     put:
       tags:
       - Users
@@ -80,15 +150,18 @@ paths:
       parameters:
       - name: user_id
         in: path
+        description: ユーザーID
         required: true
         schema:
+          minimum: 1
           type: integer
           format: int64
+        example: 1
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/UserUpdateRequest'
             example:
               name: Taro Yamada
               age: 31
@@ -96,38 +169,96 @@ paths:
               height: 171.0
               zipCode: 123-4567
               careerHistories:
-              - title: Senior Engineer
+              - id: 2
+                title: Senior Engineer
                 period:
                   from: 2021/04/01
                   to: 2024/03/31
         required: true
       responses:
-        "405":
-          description: メソッド不許可
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
         "406":
           description: Not Acceptable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
-        "204":
-          description: No Content
+              examples:
+                NotAcceptable:
+                  description: NotAcceptable
+                  value:
+                    code: NOT_ACCEPTABLE
+                    message: 受理できないメディアタイプです
+                    traceId: eeeeeeee-ffff-0000-1111-222222222222
+        "422":
+          description: 処理不能（検証エラー）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                UnprocessableEntity:
+                  description: UnprocessableEntity
+                  value:
+                    code: UNPROCESSABLE_ENTITY
+                    message: リクエスト内容に不備があります
+                    traceId: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                    errors:
+                    - code: INVALID_PERIOD
+                      reason: period.fromはperiod.to以前の日付を指定してください
+                      location: body
+                      field: careerHistories.period
+                      constraints:
+                        from: 2024-01-01
+                        to: 2023-01-01
         "500":
           description: サーバエラー
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                InternalServerError:
+                  description: InternalServerError
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: 予期しないエラーが発生しました
+                    traceId: 99999999-aaaa-bbbb-cccc-dddddddddddd
+        "204":
+          description: No Content
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                MethodNotAllowed:
+                  description: MethodNotAllowed
+                  value:
+                    code: METHOD_NOT_ALLOWED
+                    message: 許可されていないHTTPメソッドです
+                    traceId: dddddddd-eeee-ffff-0000-111111111111
         "400":
           description: 不正なリクエスト
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                BadRequest:
+                  description: BadRequest
+                  value:
+                    code: BAD_REQUEST
+                    message: 入力内容に誤りがあります
+                    traceId: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+                    errors:
+                    - code: VALIDATION_ERROR
+                      reason: limitは0〜100の範囲で指定してください
+                      location: query
+                      field: limit
+                      constraints:
+                        invalidValue: "-1"
+                        expectedType: Integer
     delete:
       tags:
       - Users
@@ -136,37 +267,97 @@ paths:
       parameters:
       - name: user_id
         in: path
+        description: ユーザーID
         required: true
         schema:
+          minimum: 1
           type: integer
           format: int64
+        example: 1
       responses:
-        "405":
-          description: メソッド不許可
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
         "406":
           description: Not Acceptable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
-        "204":
-          description: No Content
+              examples:
+                NotAcceptable:
+                  description: NotAcceptable
+                  value:
+                    code: NOT_ACCEPTABLE
+                    message: 受理できないメディアタイプです
+                    traceId: eeeeeeee-ffff-0000-1111-222222222222
+        "422":
+          description: 処理不能（検証エラー）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                UnprocessableEntity:
+                  description: UnprocessableEntity
+                  value:
+                    code: UNPROCESSABLE_ENTITY
+                    message: リクエスト内容に不備があります
+                    traceId: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                    errors:
+                    - code: INVALID_PERIOD
+                      reason: period.fromはperiod.to以前の日付を指定してください
+                      location: body
+                      field: careerHistories.period
+                      constraints:
+                        from: 2024-01-01
+                        to: 2023-01-01
         "500":
           description: サーバエラー
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                InternalServerError:
+                  description: InternalServerError
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: 予期しないエラーが発生しました
+                    traceId: 99999999-aaaa-bbbb-cccc-dddddddddddd
+        "204":
+          description: No Content
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                MethodNotAllowed:
+                  description: MethodNotAllowed
+                  value:
+                    code: METHOD_NOT_ALLOWED
+                    message: 許可されていないHTTPメソッドです
+                    traceId: dddddddd-eeee-ffff-0000-111111111111
         "400":
           description: 不正なリクエスト
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                BadRequest:
+                  description: BadRequest
+                  value:
+                    code: BAD_REQUEST
+                    message: 入力内容に誤りがあります
+                    traceId: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+                    errors:
+                    - code: VALIDATION_ERROR
+                      reason: limitは0〜100の範囲で指定してください
+                      location: query
+                      field: limit
+                      constraints:
+                        invalidValue: "-1"
+                        expectedType: Integer
   /api/v1/users:
     get:
       tags:
@@ -202,30 +393,32 @@ paths:
           type: string
         example: 0
       responses:
-        "422":
-          description: "処理不能（例: 期間の矛盾）"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
-        "405":
-          description: メソッド不許可
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
         "406":
           description: Not Acceptable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                NotAcceptable:
+                  description: NotAcceptable
+                  value:
+                    code: NOT_ACCEPTABLE
+                    message: 受理できないメディアタイプです
+                    traceId: eeeeeeee-ffff-0000-1111-222222222222
         "500":
           description: サーバエラー
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                InternalServerError:
+                  description: InternalServerError
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: 予期しないエラーが発生しました
+                    traceId: 99999999-aaaa-bbbb-cccc-dddddddddddd
         "200":
           description: OK
           content:
@@ -240,28 +433,86 @@ paths:
                   total: 25
                   hasNext: true
                 users:
-                - name: Taro Yamada
+                - id: 1
+                  name: Taro Yamada
                   age: 30
                   birthday: 1994/04/01
                   height: 170.5
                   zipCode: 123-4567
                   careerHistories:
-                  - title: Software Engineer
+                  - id: 1
+                    title: Software Engineer
                     period:
                       from: 2018/04/01
                       to: 2021/03/31
-        "400":
-          description: 不正なパラメータ
+        "405":
+          description: メソッド不許可
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                MethodNotAllowed:
+                  description: MethodNotAllowed
+                  value:
+                    code: METHOD_NOT_ALLOWED
+                    message: 許可されていないHTTPメソッドです
+                    traceId: dddddddd-eeee-ffff-0000-111111111111
         "404":
           description: 対象なし
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                NotFound:
+                  description: NotFound
+                  value:
+                    code: NOT_FOUND
+                    message: リソースが見つかりません
+                    traceId: cccccccc-dddd-eeee-ffff-000000000000
+        "422":
+          description: "処理不能（例: 期間の矛盾）"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                UnprocessableEntity:
+                  description: UnprocessableEntity
+                  value:
+                    code: UNPROCESSABLE_ENTITY
+                    message: リクエスト内容に不備があります
+                    traceId: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                    errors:
+                    - code: INVALID_PERIOD
+                      reason: period.fromはperiod.to以前の日付を指定してください
+                      location: body
+                      field: careerHistories.period
+                      constraints:
+                        from: 2024-01-01
+                        to: 2023-01-01
+        "400":
+          description: 不正なパラメータ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                BadRequest:
+                  description: BadRequest
+                  value:
+                    code: BAD_REQUEST
+                    message: 入力内容に誤りがあります
+                    traceId: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+                    errors:
+                    - code: VALIDATION_ERROR
+                      reason: limitは0〜100の範囲で指定してください
+                      location: query
+                      field: limit
+                      constraints:
+                        invalidValue: "-1"
+                        expectedType: Integer
     post:
       tags:
       - Users
@@ -271,7 +522,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserRequest'
+              $ref: '#/components/schemas/UserCreateRequest'
             example:
               name: Taro Yamada
               age: 30
@@ -285,18 +536,66 @@ paths:
                   to: 2021/03/31
         required: true
       responses:
-        "405":
-          description: メソッド不許可
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
         "406":
           description: Not Acceptable
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                NotAcceptable:
+                  description: NotAcceptable
+                  value:
+                    code: NOT_ACCEPTABLE
+                    message: 受理できないメディアタイプです
+                    traceId: eeeeeeee-ffff-0000-1111-222222222222
+        "500":
+          description: サーバエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                InternalServerError:
+                  description: InternalServerError
+                  value:
+                    code: INTERNAL_SERVER_ERROR
+                    message: 予期しないエラーが発生しました
+                    traceId: 99999999-aaaa-bbbb-cccc-dddddddddddd
+        "405":
+          description: メソッド不許可
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                MethodNotAllowed:
+                  description: MethodNotAllowed
+                  value:
+                    code: METHOD_NOT_ALLOWED
+                    message: 許可されていないHTTPメソッドです
+                    traceId: dddddddd-eeee-ffff-0000-111111111111
+        "400":
+          description: 不正なリクエスト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                BadRequest:
+                  description: BadRequest
+                  value:
+                    code: BAD_REQUEST
+                    message: 入力内容に誤りがあります
+                    traceId: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+                    errors:
+                    - code: VALIDATION_ERROR
+                      reason: limitは0〜100の範囲で指定してください
+                      location: query
+                      field: limit
+                      constraints:
+                        invalidValue: "-1"
+                        expectedType: Integer
         "201":
           description: Created
           headers:
@@ -306,130 +605,140 @@ paths:
               schema:
                 type: string
                 example: /api/v1/users/1
-        "500":
-          description: サーバエラー
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
-        "409":
-          description: 重複（name一意制約）
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
-        "400":
-          description: 不正なリクエスト
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
         "422":
           description: 処理不能（期間エラーなど）
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                UnprocessableEntity:
+                  description: UnprocessableEntity
+                  value:
+                    code: UNPROCESSABLE_ENTITY
+                    message: リクエスト内容に不備があります
+                    traceId: bbbbbbbb-cccc-dddd-eeee-ffffffffffff
+                    errors:
+                    - code: INVALID_PERIOD
+                      reason: period.fromはperiod.to以前の日付を指定してください
+                      location: body
+                      field: careerHistories.period
+                      constraints:
+                        from: 2024-01-01
+                        to: 2023-01-01
+        "409":
+          description: 重複（name一意制約）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+              examples:
+                Conflict:
+                  description: Conflict
+                  value:
+                    code: CONFLICT
+                    message: リソースが重複しています
+                    traceId: ffffffff-0000-1111-2222-333333333333
+                    errors:
+                    - code: DUPLICATE
+                      reason: nameは既に存在しています
+                      location: body
+                      field: name
+                      constraints:
+                        unique: true
 components:
   schemas:
-    CareerHistoryDto:
-      required:
-      - period
-      - title
+    CareerHistoryUpdateDto:
       type: object
       properties:
+        id:
+          type: integer
+          description: 職歴ID
+          format: int64
+          example: 1
         title:
           maxLength: 200
           minLength: 1
+          pattern: .*\D.*
           type: string
-          description: 職務タイトル（1〜200文字）
-          example: Software Engineer
+          description: 職務タイトル
+          example: Senior Engineer
         period:
-          $ref: '#/components/schemas/PeriodDto'
-      description: 職歴情報
-      example:
-        title: Software Engineer
-        period:
-          from: 2018/04/01
-          to: 2021/03/31
-    PeriodDto:
-      required:
-      - from
-      - to
+          $ref: '#/components/schemas/PeriodUpdateDto'
+      description: 職歴情報（更新用）
+    PeriodUpdateDto:
       type: object
       properties:
         from:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
           type: string
           description: 開始日（yyyy/MM/dd）
-          format: date
+          format: yyyy/MM/dd
+          example: 2018/04/01
         to:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
           type: string
           description: 終了日（yyyy/MM/dd）
-          format: date
-      description: 期間情報
-      example:
-        from: 2018/04/01
-        to: 2021/03/31
-    UserRequest:
-      required:
-      - age
-      - birthday
-      - name
+          format: yyyy/MM/dd
+          example: 2021/03/31
+      description: 期間情報（更新用）
+    UserUpdateRequest:
       type: object
       properties:
         name:
           maxLength: 200
           minLength: 1
+          pattern: .*\D.*
           type: string
-          description: 氏名（1〜200文字、数字のみ不可）
+          description: 氏名
           example: Taro Yamada
         age:
           maximum: 150
           minimum: 0
           type: integer
-          description: 年齢（0〜150）
+          description: 年齢
           format: int32
           example: 30
         birthday:
-          pattern: "^[0-9]{4}/[0-9]{2}/[0-9]{2}$"
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
           type: string
           description: 生年月日（yyyy/MM/dd）
-          format: date
+          format: yyyy/MM/dd
+          example: 1994/04/01
         height:
           maximum: 300.0
-          exclusiveMaximum: false
           minimum: 0.0
-          exclusiveMinimum: false
           type: number
-          description: 身長（整数3桁・小数1桁、0.0〜300.0）
+          description: 身長
           format: double
+          nullable: true
           example: 170.5
         zipCode:
           maxLength: 8
           minLength: 8
-          pattern: "\\d{3}-\\d{4}"
+          pattern: "^\\d{3}-\\d{4}$"
           type: string
-          description: 郵便番号（000-0000形式）
+          description: 郵便番号
+          nullable: true
           example: 123-4567
         careerHistories:
-          maxItems: 50
-          minItems: 1
           type: array
-          description: 職歴（最大50件）
+          description: 更新対象職歴一覧
           items:
-            $ref: '#/components/schemas/CareerHistoryDto'
-      description: ユーザー作成/更新のリクエスト
+            $ref: '#/components/schemas/CareerHistoryUpdateDto'
+      description: ユーザー更新のリクエスト
       example:
         name: Taro Yamada
-        age: 30
+        age: 31
         birthday: 1994/04/01
-        height: 170.5
+        height: 171.0
         zipCode: 123-4567
         careerHistories:
-        - title: Software Engineer
+        - id: 2
+          title: Senior Engineer
           period:
-            from: 2018/04/01
-            to: 2021/03/31
+            from: 2021/04/01
+            to: 2024/03/31
     ApiErrorResponse:
       type: object
       properties:
@@ -440,7 +749,7 @@ components:
         message:
           type: string
           description: メッセージ
-          example: Validation failed
+          example: 入力内容に誤りがあります
         traceId:
           type: string
           description: トレースID
@@ -461,11 +770,15 @@ components:
         reason:
           type: string
           description: 理由
-          example: must not be blank
+          example: 氏名は必須です
         field:
           type: string
           description: 対象フィールド
           example: name
+        location:
+          type: string
+          description: エラー発生箇所
+          example: body
         constraints:
           type: object
           description: 制約情報（任意、構造は実装依存）
@@ -473,6 +786,119 @@ components:
             min: 1
             max: 200
       description: バリデーション等の詳細エラー
+    CareerHistoryDto:
+      required:
+      - period
+      - title
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 職歴ID
+          format: int64
+          example: 1
+        title:
+          maxLength: 200
+          minLength: 1
+          pattern: .*\D.*
+          type: string
+          description: 職務タイトル（1〜200文字）
+          example: Software Engineer
+        period:
+          $ref: '#/components/schemas/PeriodDto'
+      description: 職歴情報
+      example:
+        id: 1
+        title: Software Engineer
+        period:
+          from: 2018/04/01
+          to: 2021/03/31
+    PeriodDto:
+      required:
+      - from
+      - to
+      type: object
+      properties:
+        from:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
+          type: string
+          description: 開始日（yyyy/MM/dd）
+          format: yyyy/MM/dd
+          example: 2018/04/01
+        to:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
+          type: string
+          description: 終了日（yyyy/MM/dd）
+          format: yyyy/MM/dd
+          example: 2021/03/31
+      description: 期間情報
+      example:
+        from: 2018/04/01
+        to: 2021/03/31
+    UserCreateRequest:
+      required:
+      - age
+      - birthday
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 200
+          minLength: 1
+          pattern: .*\D.*
+          type: string
+          description: 氏名（1〜200文字、数字のみ不可）
+          example: Taro Yamada
+        age:
+          maximum: 150
+          minimum: 0
+          type: integer
+          description: 年齢（0〜150）
+          format: int32
+          example: 30
+        birthday:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
+          type: string
+          description: 生年月日（yyyy/MM/dd）
+          format: yyyy/MM/dd
+          example: 1994/04/01
+        height:
+          maximum: 300.0
+          exclusiveMaximum: false
+          minimum: 0.0
+          exclusiveMinimum: false
+          type: number
+          description: 身長（整数3桁・小数1桁、0.0〜300.0）
+          format: double
+          nullable: true
+          example: 170.5
+        zipCode:
+          maxLength: 8
+          minLength: 8
+          pattern: "\\d{3}-\\d{4}"
+          type: string
+          description: 郵便番号（000-0000形式）
+          nullable: true
+          example: 123-4567
+        careerHistories:
+          maxItems: 50
+          minItems: 1
+          type: array
+          description: 職歴（最大50件）
+          items:
+            $ref: '#/components/schemas/CareerHistoryDto'
+      description: ユーザー作成のリクエスト
+      example:
+        name: Taro Yamada
+        age: 30
+        birthday: 1994/04/01
+        height: 170.5
+        zipCode: 123-4567
+        careerHistories:
+        - title: Software Engineer
+          period:
+            from: 2018/04/01
+            to: 2021/03/31
     PageMeta:
       type: object
       properties:
@@ -528,19 +954,26 @@ components:
           total: 25
           hasNext: true
         users:
-        - name: Taro Yamada
+        - id: 1
+          name: Taro Yamada
           age: 30
           birthday: 1994/04/01
           height: 170.5
           zipCode: 123-4567
           careerHistories:
-          - title: Software Engineer
+          - id: 1
+            title: Software Engineer
             period:
               from: 2018/04/01
               to: 2021/03/31
     UserResponse:
       type: object
       properties:
+        id:
+          type: integer
+          description: ユーザーID
+          format: int64
+          example: 1
         name:
           type: string
           description: 氏名
@@ -551,16 +984,26 @@ components:
           format: int32
           example: 30
         birthday:
+          pattern: "^(19|20)[0-9]{2}/(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])$"
           type: string
           description: 生年月日（yyyy/MM/dd）
-          format: date
+          format: yyyy/MM/dd
+          example: 1994/04/01
         height:
+          maximum: 300.0
+          minimum: 0.0
           type: number
           description: 身長
+          format: double
+          nullable: true
           example: 170.5
         zipCode:
+          maxLength: 8
+          minLength: 8
+          pattern: "^\\d{3}-\\d{4}$"
           type: string
           description: 郵便番号
+          nullable: true
           example: 123-4567
         careerHistories:
           type: array
@@ -569,17 +1012,20 @@ components:
             $ref: '#/components/schemas/CareerHistoryDto'
       description: ユーザー取得レスポンス
       example:
+        id: 1
         name: Taro Yamada
         age: 30
         birthday: 1994/04/01
         height: 170.5
         zipCode: 123-4567
         careerHistories:
-        - title: Software Engineer
+        - id: 1
+          title: Software Engineer
           period:
             from: 2018/04/01
             to: 2021/03/31
-        - title: Senior Engineer
+        - id: 2
+          title: Senior Engineer
           period:
             from: 2021/04/01
             to: 2024/03/31

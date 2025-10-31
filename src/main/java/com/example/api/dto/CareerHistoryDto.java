@@ -25,7 +25,7 @@ public class CareerHistoryDto {
     @NotBlank(message = "{career.title.notBlank}")
     @Size(min = 1, max = 200, message = "{career.title.size}")
     @NotNumericOnly(message = "{career.title.notNumeric}")
-    @Schema(description = "職務タイトル（1〜200文字）", example = OpenApiExamples.Career.TITLE, required = true, minLength = 1, maxLength = 200)
+    @Schema(description = "職務タイトル（1〜200文字）", example = OpenApiExamples.Career.TITLE, required = true, minLength = 1, maxLength = 200, pattern = ".*\\D.*")
     private String title;
 
     /** 従事期間（必須）。 */
