@@ -157,3 +157,28 @@ curl -i -X DELETE "http://localhost:8080/api/v1/users/1"
 ```bash
 curl -s "http://localhost:8080/actuator/health" | jq .
 ```
+
+## Schemathesisによる自動テスト
+
+OpenAPI 定義 (`target/api-docs.yml`) を用いたプロパティベーステストを Schemathesis で実行できます。以下の手順で実行してください。
+
+1. OpenAPI の最新化とビルド
+   ```bash
+   mvn clean verify
+   ```
+2. Spring Boot のバックグラウンド起動
+   ```bash
+   mvn spring-boot:run > spring.log 2>&1 & SERVER_PID=$!
+   ```
+3. Schemathesis の実行（仮想環境を有効化）
+   ```bash
+   source ~/.venvs/schemathesis/bin/activate
+   python schemathesis_runner.py
+   ```
+   - デフォルトで `schemathesis_runner.py` は `target/api-docs.yml` を参照し、詳細ログと統計をコンソールへ出力します。
+4. テスト終了後、Spring Boot を停止
+   ```bash
+   kill $SERVER_PID
+   ```
+
+必要に応じて `schemathesis.toml` や `schemathesis_hooks.py` を編集し、テスト範囲やログ出力を調整してください。
