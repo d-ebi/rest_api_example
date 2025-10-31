@@ -1,6 +1,8 @@
 import copy
+import json
 import os
 import uuid
+from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -10,6 +12,8 @@ BASE_URL = os.environ.get("SCHEMATHESIS_BASE_URL", "http://localhost:8080")
 SESSION = requests.Session()
 USER_CACHE: List[Dict[str, Any]] = []
 KNOWN_NAMES: set[str] = set()
+RUN_STATS: Dict[str, Any] = {"total": 0, "statuses": defaultdict(int)}
+CASE_IDS: Dict[int, int] = {}
 
 FORCE_VALID_RUN = {
     ("POST", "/api/v1/users"): True,
@@ -101,6 +105,26 @@ def _get_existing_user_id() -> Optional[int]:
     return created
 
 
+def _serialize(value: Any) -> str:
+    if value is None or value.__class__.__module__ == "schemathesis.core":
+        return "null"
+    if isinstance(value, (dict, list)):
+        try:
+            return json.dumps(value, ensure_ascii=False, default=str)
+        except (TypeError, ValueError):
+            return str(value)
+    return str(value)
+
+
+def _build_curl(case: Any) -> str:
+    try:
+        return case.as_curl_command()
+    except Exception as exc:
+        base_url = BASE_URL or getattr(case.operation.schema, "base_url", None) or "http://localhost:8080"
+        path = case.formatted_path if hasattr(case, "formatted_path") else case.path
+        return f"curl -X {case.method.upper()} {base_url}{path} # failed to render: {exc}"
+
+
 def _set_valid_case(case: Any, *, include_body: bool, include_career_histories: bool) -> None:
     user_id = _get_existing_user_id()
     if user_id is not None:
@@ -123,6 +147,20 @@ def before_call(ctx: schemathesis.HookContext, case: Any, **kwargs: Any) -> None
     path = operation.path
     key: Tuple[str, str] = (method, path)
     force_valid = FORCE_VALID_RUN.get(key, False)
+
+    RUN_STATS["total"] += 1
+    case_id = RUN_STATS["total"]
+    CASE_IDS[id(case)] = case_id
+
+    path_params = case.path_parameters if isinstance(case.path_parameters, dict) else {}
+    query = case.query if isinstance(case.query, dict) else {}
+    body = case.body if isinstance(case.body, (dict, list)) else case.body
+
+    print(f"[Schemathesis][Case #{case_id}] {method} {path}")
+    print(f"  Path params: {_serialize(path_params)}")
+    print(f"  Query      : {_serialize(query)}")
+    print(f"  Body       : {_serialize(body)}")
+    print(f"  Reproduce  : {_build_curl(case)}")
 
     if path == "/api/v1/users" and method == "POST":
         if isinstance(case.body, dict):
@@ -168,6 +206,11 @@ def after_call(ctx: schemathesis.HookContext, case: Any, response: Any) -> None:
     method = operation.method.upper()
     path = operation.path
 
+    RUN_STATS["statuses"][response.status_code] += 1
+    case_id = CASE_IDS.pop(id(case), None)
+    if case_id is not None:
+        print(f"[Schemathesis][Case #{case_id}] Status: {response.status_code}")
+
     if path == "/api/v1/users" and method == "POST" and response.status_code == 201:
         user_id = _extract_id(response.headers.get("Location"))
         if user_id is not None and isinstance(case.body, dict):
@@ -182,3 +225,15 @@ def after_call(ctx: schemathesis.HookContext, case: Any, response: Any) -> None:
             USER_CACHE[:] = [user for user in USER_CACHE if user.get("id") != removed]
             KNOWN_NAMES.clear()
             KNOWN_NAMES.update(user["name"] for user in USER_CACHE if isinstance(user.get("name"), str))
+
+
+def _print_stats() -> None:
+    print("[Schemathesis] 統計")
+    print(f"  合計テストケース数: {RUN_STATS['total']}")
+    for status_code in sorted(RUN_STATS["statuses"]):
+        print(f"  ステータス {status_code}: {RUN_STATS['statuses'][status_code]}")
+
+
+import atexit
+
+atexit.register(_print_stats)
