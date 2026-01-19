@@ -22,6 +22,9 @@
         <integration.server.port>18080</integration.server.port>
         <allure.version>2.29.1</allure.version>
         <allure.maven.plugin.version>2.15.2</allure.maven.plugin.version>
+        <pmd.plugin.version>3.21.2</pmd.plugin.version>
+        <pmd.ruleset.main>${project.basedir}/config/pmd/pmd-rules.xml</pmd.ruleset.main>
+        <pmd.ruleset.test>${project.basedir}/config/pmd/pmd-test-rules.xml</pmd.ruleset.test>
     </properties>
 
     <dependencyManagement>
@@ -158,6 +161,7 @@
                         <configuration>
                             <arguments>
                                 <argument>--server.port=${integration.server.port}</argument>
+                                <argument>--spring.datasource.url=jdbc:sqlite:${project.build.directory}/app.db</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -214,34 +218,160 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.3</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <encoding>UTF-8</encoding>
-                    <doclint>none</doclint>
-                </configuration>
-            </plugin>
+            <!-- Source: https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-site-plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.12.1</version>
+                <version>3.21.0</version>
+                <!-- Source: https://mvnrepository.com/artifact/org.apache.maven.skins/maven-fluido-skin -->
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.skins</groupId>
+                        <artifactId>maven-fluido-skin</artifactId>
+                        <version>2.0.0-M9</version>
+                        <scope>compile</scope>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>render-pmd-cpd-html</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.reporting.outputDirectory}/pmd-main"/>
+                                <mkdir dir="${project.reporting.outputDirectory}/pmd-test"/>
+                                <mkdir dir="${project.reporting.outputDirectory}/cpd-main"/>
+                                <mkdir dir="${project.reporting.outputDirectory}/cpd-test"/>
+                                <xslt in="${project.build.directory}/pmd-main/pmd.xml"
+                                      out="${project.reporting.outputDirectory}/pmd-main/pmd.html"
+                                      style="${project.basedir}/config/pmd/pmd-nicerhtml.xsl"/>
+                                <xslt in="${project.build.directory}/pmd-test/pmd.xml"
+                                      out="${project.reporting.outputDirectory}/pmd-test/pmd.html"
+                                      style="${project.basedir}/config/pmd/pmd-nicerhtml.xsl"/>
+                                <xslt in="${project.build.directory}/cpd-main/cpd.xml"
+                                      out="${project.reporting.outputDirectory}/cpd-main/cpd.html"
+                                      style="${project.basedir}/config/pmd/cpd-html.xsl"/>
+                                <xslt in="${project.build.directory}/cpd-test/cpd.xml"
+                                      out="${project.reporting.outputDirectory}/cpd-test/cpd.html"
+                                      style="${project.basedir}/config/pmd/cpd-html.xsl"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>copy-pmd-cpd-separate-reports</id>
+                        <phase>site</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.reporting.outputDirectory}/pmd-separate</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>pmd-main/pmd.xml</include>
+                                        <include>pmd-test/pmd.xml</include>
+                                        <include>cpd-main/cpd.xml</include>
+                                        <include>cpd-test/cpd.xml</include>
+                                    </includes>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${pmd.plugin.version}</version>
+                <configuration>
+                    <rulesets>
+                        <ruleset>${pmd.ruleset.main}</ruleset>
+                    </rulesets>
+                    <failOnViolation>false</failOnViolation>
+                    <targetJdk>${maven.compiler.source}</targetJdk>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>pmd-main</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>pmd</goal>
+                        </goals>
+                        <configuration>
+                            <rulesets>
+                                <ruleset>${pmd.ruleset.main}</ruleset>
+                            </rulesets>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
+                            </compileSourceRoots>
+                            <targetDirectory>${project.build.directory}/pmd-main</targetDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>cpd-main</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>cpd</goal>
+                        </goals>
+                        <configuration>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.sourceDirectory}</compileSourceRoot>
+                            </compileSourceRoots>
+                            <targetDirectory>${project.build.directory}/cpd-main</targetDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>pmd-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>pmd</goal>
+                        </goals>
+                        <configuration>
+                            <rulesets>
+                                <ruleset>${pmd.ruleset.test}</ruleset>
+                            </rulesets>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.testSourceDirectory}</compileSourceRoot>
+                            </compileSourceRoots>
+                            <targetDirectory>${project.build.directory}/pmd-test</targetDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>cpd-test</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>cpd</goal>
+                        </goals>
+                        <configuration>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${project.build.testSourceDirectory}</compileSourceRoot>
+                            </compileSourceRoots>
+                            <targetDirectory>${project.build.directory}/cpd-test</targetDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>${allure.maven.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>allure-report</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -250,8 +380,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.5.0</version>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.21.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -261,7 +391,16 @@
                     <source>${maven.compiler.source}</source>
                     <encoding>UTF-8</encoding>
                     <doclint>none</doclint>
+                    <failOnError>false</failOnError>
                 </configuration>
+                <reportSets>
+                    <reportSet>
+                        <id>main-javadoc</id>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
             </plugin>
         </plugins>
     </reporting>
