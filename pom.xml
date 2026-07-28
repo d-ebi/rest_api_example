@@ -133,6 +133,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Integration testing against the running HTTP server -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -158,6 +164,7 @@
                         <configuration>
                             <arguments>
                                 <argument>--server.port=${integration.server.port}</argument>
+                                <argument>--spring.datasource.url=jdbc:sqlite:${project.build.directory}/rest-assured-it.db</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -195,6 +202,24 @@
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <integration.server.port>${integration.server.port}</integration.server.port>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springdoc</groupId>
