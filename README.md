@@ -183,6 +183,18 @@ OpenAPI 定義 (`target/api-docs.yml`) を用いたプロパティベーステ�
 
 必要に応じて `schemathesis.toml` や `schemathesis_hooks.py` を編集し、テスト範囲やログ出力を調整してください。
 
+## REST Assuredによる結合テスト
+
+`mvn verify`を実行すると、Maven Failsafeが`*IT`クラスを結合テストとして実行します。
+テスト中はSpring Bootがポート`18080`で起動し、通常利用する`data/app.db`ではなく
+`target/rest-assured-it.db`を使用します。
+
+```bash
+mvn verify
+```
+
+テスト結果は`target/failsafe-reports`、Allureの入力データは`target/allure-results`で確認できます。
+
 ## Allureレポートのローカル確認方法
 
 1. JUnitテスト実行およびAllureレポートの出力
